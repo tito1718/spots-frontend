@@ -1,38 +1,25 @@
 {
-  "name": "se_project_spots",
+  "name": "spots-frontend",
   "version": "0.1.0",
-  "description": "\"interactive image-sharing application\"",
-  "homepage": "https://github.com/tito1718/se_project_spots#readme",
+  "description": "A responsive social photo-sharing application for discovering and sharing memorable places.",
+  "homepage": "https://github.com/tito1718/spots-frontend",
   "bugs": {
-    "url": "https://github.com/tito1718/se_project_spots/issues"
+    "url": "https://github.com/tito1718/spots-frontend/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tito1718/se_project_spots.git"
+    "url": "git+https://github.com/tito1718/spots-frontend.git"
   },
   "license": "ISC",
   "author": "Cesar Chirino",
   "main": "index.js",
   "scripts": {
-    "build": "webpack --mode production",
-    "dev": "webpack serve --mode development"
+    "build": "vite build",
+    "dev": "vite --open",
+    "preview": "vite preview"
   },
   "devDependencies": {
-    "@babel/core": "7.18.9",
-    "@babel/preset-env": "7.18.9",
-    "autoprefixer": "10.4.7",
-    "babel-loader": "8.2.5",
-    "clean-webpack-plugin": "4.0.0",
-    "css-loader": "6.7.1",
-    "cssnano": "5.1.12",
-    "html-webpack-plugin": "5.5.0",
-    "mini-css-extract-plugin": "2.6.1",
-    "postcss-loader": "7.0.1",
-    "webpack": "5.76.0",
-    "webpack-cli": "4.10.0",
-    "webpack-dev-server": "4.9.3"
+    "vite": "^8.2.2"
   },
-  "dependencies": {
-    "core-js": "3.23.5"
-  }
+  "private": true
 }
