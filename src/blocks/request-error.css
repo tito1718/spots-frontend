@@ -1,0 +1,26 @@
+/* REQUEST ERROR MESSAGES */
+
+.request-error {
+  box-sizing: border-box;
+  color: #9f2424;
+  background-color: #fff3f1;
+  border: 1px solid #e6b8b2;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  font-family: Poppins, Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* Keep empty live regions present without visible spacing. */
+
+.request-error:empty {
+  padding: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  border: 0;
+}

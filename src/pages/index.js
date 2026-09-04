@@ -2,6 +2,10 @@
 
 import "./index.css";
 import {
+  clearRequestError,
+  showRequestError,
+} from "../utils/request-errors.js";
+import {
   enableValidation,
   resetValidation,
   settings,
@@ -114,6 +118,7 @@ function getCardElement(data) {
   likeBtn.addEventListener("click", () => {
     if (isLikePending) return;
 
+    clearRequestError();
     isLikePending = true;
     likeBtn.disabled = true;
     likeBtn.setAttribute("aria-busy", "true");
@@ -132,7 +137,9 @@ function getCardElement(data) {
         likeCount.textContent = likeCountValue;
         likeBtn.classList.toggle("card__like-btn_active", isLiked);
       })
-      .catch(console.error)
+      .catch(() => {
+        showRequestError("Could not update the like. Please try again.");
+      })
       .finally(() => {
         isLikePending = false;
         likeBtn.disabled = false;
@@ -144,6 +151,7 @@ function getCardElement(data) {
 
   if (ownerId === currentUserId) {
     deleteBtn.addEventListener("click", () => {
+      clearRequestError(deleteForm);
       cardToDelete = { element: cardElement, id: data._id };
       openModal(deleteModal);
     });
@@ -177,6 +185,7 @@ deleteForm.addEventListener("submit", (evt) => {
   if (!cardToDelete || isDeleting) return;
 
   // Keep the submitted target stable if another photo is selected.
+  clearRequestError(deleteForm);
   const submittedCard = cardToDelete;
   isDeleting = true;
   setLoadingState(deleteSubmitBtn, true, "Delete", "Deleting...");
@@ -192,7 +201,12 @@ deleteForm.addEventListener("submit", (evt) => {
         cardToDelete = null;
       }
     })
-    .catch(console.error)
+    .catch(() => {
+      showRequestError(
+        "Could not delete the photo. Please try again.",
+        cardToDelete === submittedCard ? deleteForm : null,
+      );
+    })
     .finally(() => {
       isDeleting = false;
       setLoadingState(deleteSubmitBtn, false, "Delete", "Deleting...");
@@ -214,6 +228,7 @@ document.querySelectorAll(".modal__close-btn").forEach((btn) => {
 // FORM VALIDATION RESET //
 
 function resetModalValidation(form) {
+  clearRequestError(form);
   resetValidation(
     form,
     Array.from(form.querySelectorAll(settings.inputSelector)),
@@ -248,6 +263,7 @@ avatarEditBtn.addEventListener("click", () => {
 
 editProfileForm.addEventListener("submit", (evt) => {
   evt.preventDefault();
+  clearRequestError(editProfileForm);
   const btn = editProfileForm.querySelector(".modal__submit-btn");
   setLoadingState(btn, true, "Save", "Saving...");
 
@@ -261,7 +277,12 @@ editProfileForm.addEventListener("submit", (evt) => {
       profileDescriptionEl.textContent = data.about;
       closeModal(editProfileModal);
     })
-    .catch(console.error)
+    .catch(() => {
+      showRequestError(
+        "Could not save your profile. Your changes are still in the form.",
+        editProfileForm,
+      );
+    })
     .finally(() => {
       setLoadingState(btn, false, "Save", "Saving...");
     });
@@ -271,6 +292,7 @@ editProfileForm.addEventListener("submit", (evt) => {
 
 newPostForm.addEventListener("submit", (evt) => {
   evt.preventDefault();
+  clearRequestError(newPostForm);
   const btn = newPostForm.querySelector(".modal__submit-btn");
   setLoadingState(btn, true, "Save", "Creating...");
 
@@ -284,7 +306,12 @@ newPostForm.addEventListener("submit", (evt) => {
       newPostForm.reset();
       closeModal(newPostModal);
     })
-    .catch(console.error)
+    .catch(() => {
+      showRequestError(
+        "Could not create the post. Your entries are still in the form.",
+        newPostForm,
+      );
+    })
     .finally(() => {
       setLoadingState(btn, false, "Save", "Creating...");
     });
@@ -294,6 +321,7 @@ newPostForm.addEventListener("submit", (evt) => {
 
 avatarForm.addEventListener("submit", (evt) => {
   evt.preventDefault();
+  clearRequestError(avatarForm);
   const btn = avatarForm.querySelector(".modal__submit-btn");
   setLoadingState(btn, true, "Save", "Updating...");
 
@@ -306,7 +334,12 @@ avatarForm.addEventListener("submit", (evt) => {
       avatarForm.reset();
       closeModal(avatarModal);
     })
-    .catch(console.error)
+    .catch(() => {
+      showRequestError(
+        "Could not update your avatar. Please try again.",
+        avatarForm,
+      );
+    })
     .finally(() => {
       setLoadingState(btn, false, "Save", "Updating...");
     });
@@ -330,7 +363,11 @@ document.addEventListener("DOMContentLoaded", () => {
       profileAvatarImg.src = user.avatar || avatarDefault;
       cards.forEach(renderCard);
     })
-    .catch(console.error);
+    .catch(() => {
+      showRequestError(
+        "Could not load your profile and photos. Check your connection, then reload the page.",
+      );
+    });
 });
 
 // VALIDATION INITIALIZATION //
