@@ -1,20 +1,35 @@
+/* GALLERY SECTION */
+
 .cards {
   padding: 20px 0 40px;
   border-bottom: 1px solid #21212166;
 }
+
+/* DESKTOP GRID */
 
 .cards__list {
   list-style-type: none;
   padding: 0;
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, 413px);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   justify-content: center;
   gap: 40px 20px;
 }
 
+/* TABLET GRID */
+
+@media screen and (max-width: 1023px) {
+  .cards__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* MOBILE GRID */
+
 @media screen and (max-width: 627px) {
   .cards__list {
-    grid-template-columns: repeat(auto-fit, 288px);
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 28px;
   }
 }

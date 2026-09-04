@@ -22,7 +22,6 @@
   background-color: transparent;
   border-radius: 90px;
   font-weight: 500;
-  font-style: medium;
   font-size: 16px;
   line-height: 100%;
   color: #fff;
@@ -63,7 +62,6 @@
   justify-content: center;
   color: #fcf5e5;
   font-weight: 500;
-  font-style: medium;
   font-size: 16px;
   line-height: 100%;
 }
@@ -73,12 +71,15 @@
   flex-direction: column;
 }
 
+/* PROFILE NAME */
+
 .profile__name {
   margin: 0 0 12px;
   max-width: 420px;
   font-weight: 500;
   font-size: 32px;
-  line-height: 1;
+  /* Leave room for letter descenders when text is clipped. */
+  line-height: 1.4;
   text-overflow: ellipsis;
   overflow: hidden;
   display: -webkit-box;

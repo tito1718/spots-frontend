@@ -1,5 +1,8 @@
+/* PAGE FOUNDATION */
+
 .page {
-  background-color: #fcf5e5;
+  background-color: #f8f7f3;
+  color: #212121;
   font-family: "Poppins", Arial, Helvetica, sans-serif;
   min-height: 100vh;
   margin: 0;

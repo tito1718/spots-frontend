@@ -1,9 +1,5 @@
 /* Responsive layout and interaction refinements. */
 
-.cards__list {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
 .card,
 .profile__column {
   min-width: 0;
@@ -239,9 +235,6 @@
 }
 
 @media screen and (max-width: 1023px) {
-  .cards__list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 
   .profile__name,
   .profile__description {
@@ -251,10 +244,6 @@
 }
 
 @media screen and (max-width: 627px) {
-  .cards__list {
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: 28px;
-  }
 
   .profile {
     max-width: none;
@@ -314,19 +303,7 @@
   }
 }
 
-/* Center delete-button labels in every state. */
-.modal__submit-btn_type_delete {
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
-
 /* Warm ivory gallery polish. */
-
-.page {
-  background-color: #f8f7f3;
-  color: #212121;
-}
 
 .profile__description,
 .modal__label,
@@ -447,9 +424,4 @@
     margin-bottom: 24px;
     font-size: 14px;
   }
-}
-
-/* Prevent profile-name descender clipping. */
-.profile__name {
-  line-height: 1.4;
 }

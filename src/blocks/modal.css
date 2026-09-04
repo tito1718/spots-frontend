@@ -193,7 +193,12 @@
   gap: 20px;
 }
 
+/* DELETE BUTTON */
+
 .modal__submit-btn_type_delete {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
   background-color: #ff6565;
   color: #212121;
   border-radius: 8px;
