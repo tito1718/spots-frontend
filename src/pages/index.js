@@ -6,11 +6,11 @@ import {
   resetValidation,
   settings,
 } from "../scripts/validation.js";
-import logoIcon from "../images/spots-images/logo-icon.svg";
-import avatarDefault from "../images/spots-images/avatar.jpg";
-import penIcon from "../images/spots-images/pen-icon.svg";
-import plusIcon from "../images/spots-images/plus-icon.svg";
-import penWhiteIcon from "../images/spots-images/penwhite.svg";
+import logoIcon from "../images/spots-images/spots-logo.svg";
+import avatarDefault from "../images/spots-images/avatar-fallback.jpg";
+import penIcon from "../images/spots-images/edit-dark.svg";
+import plusIcon from "../images/spots-images/plus.svg";
+import penWhiteIcon from "../images/spots-images/edit-light.svg";
 import Api from "../utils/Api.js";
 import { openModal, closeModal, setLoadingState } from "../utils/helpers.js";
 
@@ -34,6 +34,13 @@ let cardToDelete = null;
 const profileNameEl = document.querySelector(".profile__name");
 const profileDescriptionEl = document.querySelector(".profile__description");
 const profileAvatarImg = document.querySelector(".profile__avatar");
+
+profileAvatarImg.addEventListener("error", () => {
+  const fallbackUrl = new URL(avatarDefault, document.baseURI).href;
+  if (profileAvatarImg.src !== fallbackUrl) {
+    profileAvatarImg.src = avatarDefault;
+  }
+});
 const editProfileBtn = document.querySelector(".profile__edit-btn");
 const newPostBtn = document.querySelector(".profile__add-btn");
 const avatarEditBtn = document.querySelector(".profile__avatar-btn");

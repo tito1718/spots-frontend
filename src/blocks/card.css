@@ -37,7 +37,7 @@
 }
 
 .card__delete-btn {
-  background-image: url(../images/spots-images/State=Default.svg);
+  background-image: url(../images/spots-images/trash-default.svg);
   width: 32px;
   height: 32px;
   border: none;
@@ -54,11 +54,11 @@
 
 .card__delete-btn:hover {
   opacity: 1;
-  background-image: url(../images/spots-images/State=Hover.svg);
+  background-image: url(../images/spots-images/trash-hover.svg);
 }
 
 .card__like-btn {
-  background-image: url(../images/spots-images/heart-icon.svg);
+  background-image: url(../images/spots-images/heart-outline.svg);
   width: 23px;
   height: 20px;
   border: none;
@@ -76,7 +76,7 @@
 }
 
 .card__like-btn_active {
-  background-image: url(../images/spots-images/Union.svg);
+  background-image: url(../images/spots-images/heart-filled.svg);
   opacity: 1;
 }
 
