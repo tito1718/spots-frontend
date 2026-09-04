@@ -1,4 +1,4 @@
-//SETTINGS//
+// VALIDATION SETTINGS //
 
 export const settings = {
   formSelector: ".modal__form",
@@ -8,7 +8,7 @@ export const settings = {
   inputErrorClass: "modal__input_type_error",
 };
 
-//ERROR//
+// FIELD ERRORS //
 
 function showError(form, input, message, config) {
   const error = form.querySelector(`#${input.id}-error`);
@@ -26,7 +26,7 @@ function hideError(form, input, config) {
   error.textContent = "";
 }
 
-//VALIDATION//
+// INPUT VALIDITY //
 
 function checkInput(form, input, config) {
   if (!input.validity.valid) {
@@ -40,7 +40,7 @@ function hasInvalid(inputs) {
   return inputs.some((i) => !i.validity.valid);
 }
 
-//BUTTON//
+// SUBMIT BUTTON STATE //
 
 function toggleButton(inputs, button, config) {
   if (!button) return;
@@ -54,7 +54,7 @@ function toggleButton(inputs, button, config) {
   }
 }
 
-//RESET//
+// RESET VALIDATION //
 
 export function resetValidation(form, inputs = [], config) {
   const button = form.querySelector(config.submitButtonSelector);
@@ -63,7 +63,7 @@ export function resetValidation(form, inputs = [], config) {
   toggleButton(inputs, button, config);
 }
 
-//INIT//
+// VALIDATION INITIALIZATION //
 
 function setListeners(form, config) {
   const inputs = [...form.querySelectorAll(config.inputSelector)];

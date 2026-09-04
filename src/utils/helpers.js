@@ -1,7 +1,11 @@
+// MODAL STATE //
+
 let currentModal = null;
 let returnFocusTo = null;
 let backgroundState = [];
 let scrollState = null;
+
+// FOCUSABLE CONTROLS //
 
 const focusableSelector = [
   "a[href]",
@@ -22,6 +26,8 @@ function getFocusable(modal) {
       getComputedStyle(element).visibility !== "hidden",
   );
 }
+
+// DIALOG ACCESSIBILITY //
 
 function configureModal(modal) {
   modal.setAttribute("role", "dialog");
@@ -58,6 +64,8 @@ function configureModal(modal) {
     }
   });
 }
+
+// BACKGROUND AND SCROLL LOCK //
 
 function lockBackground(modal) {
   backgroundState = [];
@@ -108,6 +116,8 @@ function lockBackground(modal) {
   body.style.overflow = "hidden";
 }
 
+// BACKGROUND AND SCROLL RESTORATION //
+
 function unlockBackground() {
   backgroundState.forEach(([element, previousInert]) => {
     element.inert = previousInert;
@@ -132,6 +142,8 @@ function unlockBackground() {
   scrollState = null;
 }
 
+// INITIAL FOCUS //
+
 function focusInitialControl() {
   if (!currentModal) return;
 
@@ -145,6 +157,8 @@ function focusInitialControl() {
 
   target.focus({ preventScroll: true });
 }
+
+// KEYBOARD NAVIGATION //
 
 function handleModalKeydown(event) {
   if (!currentModal) return;
@@ -181,11 +195,15 @@ function handleModalKeydown(event) {
   }
 }
 
+// FOCUS CONTAINMENT //
+
 function handleFocusEscape(event) {
   if (currentModal && !currentModal.contains(event.target)) {
     focusInitialControl();
   }
 }
+
+// OPEN MODAL //
 
 export function openModal(modal, opener = document.activeElement) {
   if (!modal || currentModal === modal) return;
@@ -205,6 +223,8 @@ export function openModal(modal, opener = document.activeElement) {
   document.addEventListener("focusin", handleFocusEscape);
   focusInitialControl();
 }
+
+// CLOSE MODAL //
 
 export function closeModal(modal) {
   if (!modal || modal !== currentModal) return;
@@ -238,6 +258,8 @@ export function closeModal(modal) {
   modal.setAttribute("aria-hidden", "true");
 }
 
+// LOADING STATE //
+
 export function setLoadingState(
   button,
   isLoading,
@@ -250,6 +272,8 @@ export function setLoadingState(
   button.disabled = isLoading;
   button.setAttribute("aria-busy", String(isLoading));
 }
+
+// MODAL INITIALIZATION //
 
 document.querySelectorAll(".modal").forEach((modal) => {
   configureModal(modal);
