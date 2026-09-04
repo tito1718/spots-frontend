@@ -1,54 +1,69 @@
+/* CARD FOUNDATION */
+
 .card {
   font-family: Poppins, Arial, Helvetica, sans-serif;
   display: flex;
   flex-direction: column;
   position: relative;
+  min-width: 0;
 }
+
+/* PHOTO */
 
 .card__image {
   margin-bottom: 12px;
-  height: 413px;
+  height: auto;
   width: 100%;
+  aspect-ratio: 1;
   object-fit: cover;
   display: block;
   border-radius: 8px;
   cursor: pointer;
+  transition: opacity 180ms ease;
 }
 
 .card__image:hover {
   opacity: 0.8;
 }
 
-.card__title {
-  margin: 0;
-  max-width: 353px;
-  font-weight: 500;
-  font-size: 20px;
-  line-height: 120%;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-}
+/* CAPTION LAYOUT */
 
 .card__content {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
 }
+
+.card__title {
+  margin: 0;
+  min-width: 0;
+  max-width: none;
+  flex: 1;
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* DELETE CONTROL */
 
 .card__delete-btn {
   background-image: url(../images/spots-images/trash-default.svg);
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   border: none;
   background-color: transparent;
-  opacity: 0.4;
+  opacity: 0.85;
   cursor: pointer;
-  transition: opacity 0.2s;
   background-repeat: no-repeat;
+  background-position: center;
+  background-size: 32px 32px;
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 6px;
+  right: 6px;
   z-index: 1;
 }
 
@@ -57,18 +72,26 @@
   background-image: url(../images/spots-images/trash-hover.svg);
 }
 
+/* LIKE CONTROL */
+
+.card__like-container {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 2px;
+}
+
 .card__like-btn {
   background-image: url(../images/spots-images/heart-outline.svg);
-  width: 23px;
-  height: 20px;
+  width: 44px;
+  height: 44px;
   border: none;
   background-color: transparent;
-  opacity: 0.4;
+  opacity: 0.7;
   cursor: pointer;
-  transition: opacity 0.2s;
   background-repeat: no-repeat;
   background-position: center;
-  background-size: contain;
+  background-size: 23px 20px;
 }
 
 .card__like-btn:hover {
@@ -81,33 +104,21 @@
 }
 
 .card__like-btn_active:hover {
-  opacity: 0.4;
-}
-
-.card__like-container {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  opacity: 1;
 }
 
 .card__like-count {
+  font-weight: 400;
   font-size: 14px;
   color: #212121;
 }
 
+/* Shared control motion and focus styles live in refinements.css. */
+
+/* MOBILE TYPOGRAPHY */
+
 @media screen and (max-width: 627px) {
-  .card__image {
-    height: 288px;
-  }
-
   .card__title {
-    max-width: 235px;
     font-size: 16px;
-    line-height: 100%;
-  }
-
-  .card__like-btn {
-    width: 20px;
-    height: 18px;
   }
 }
