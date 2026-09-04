@@ -1,0 +1,455 @@
+/* Responsive layout and interaction refinements. */
+
+.cards__list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.card,
+.profile__column {
+  min-width: 0;
+}
+
+.card__image {
+  height: auto;
+  aspect-ratio: 1;
+  transition: opacity 180ms ease;
+}
+
+.card__content {
+  gap: 12px;
+}
+
+.card__title {
+  min-width: 0;
+  max-width: none;
+  flex: 1;
+}
+
+.card__like-container {
+  flex-shrink: 0;
+}
+
+.profile__avatar-container,
+.profile__add-btn {
+  flex-shrink: 0;
+}
+
+.profile__avatar {
+  display: block;
+  object-fit: cover;
+}
+
+.profile__add-btn {
+  margin-left: auto;
+}
+
+.profile__edit-btn,
+.profile__add-btn,
+.profile__avatar-btn,
+.card__like-btn,
+.card__delete-btn,
+.modal__submit-btn {
+  transition:
+    opacity 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.profile__edit-btn {
+  min-height: 44px;
+  align-items: center;
+}
+
+.profile__avatar-btn {
+  visibility: visible;
+  opacity: 1;
+  top: auto;
+  bottom: 8px;
+  left: 8px;
+  width: calc(100% - 16px);
+  min-height: 44px;
+  height: auto;
+  align-items: center;
+  background-color: #212121cc;
+  border-radius: 6px;
+}
+
+.modal {
+  box-sizing: border-box;
+  padding: 20px 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  transition:
+    opacity 200ms ease,
+    visibility 0s linear 200ms;
+}
+
+.modal_is-opened {
+  transition-delay: 0s;
+}
+
+.modal__container {
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.modal__title {
+  padding-right: 48px;
+  line-height: 1.2;
+}
+
+.modal__close-btn {
+  width: 44px;
+  height: 44px;
+  opacity: 1;
+  background-image: none;
+  color: #212121;
+  transition:
+    transform 200ms ease,
+    background-color 200ms ease;
+}
+
+.modal__close-btn::before,
+.modal__close-btn::after {
+  content: "";
+  position: absolute;
+  top: 21px;
+  left: 10px;
+  width: 24px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transform: rotate(45deg);
+}
+
+.modal__close-btn::after {
+  transform: rotate(-45deg);
+}
+
+.modal__close-btn_type_preview {
+  top: 8px;
+  right: 8px;
+  color: #fff;
+  background-color: #212121cc;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.modal__image-container {
+  max-width: min(80vw, 1200px);
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+}
+
+.modal__image {
+  width: auto;
+  max-width: 100%;
+  max-height: calc(100vh - 120px);
+  max-height: calc(100dvh - 120px);
+  height: auto;
+  margin-inline: auto;
+}
+
+.modal__caption {
+  position: static;
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+}
+
+.modal__input {
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.modal__input_type_error,
+.modal__input_type_error:hover {
+  border-color: #c62828;
+}
+
+.modal__error {
+  color: #c62828;
+}
+
+.modal__submit-btn:disabled,
+.modal__submit-btn_disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.page button:focus-visible,
+.modal button:focus-visible,
+.modal__input:focus-visible {
+  outline: 2px solid #212121;
+  outline-offset: 4px;
+}
+
+.modal__close-btn_type_preview:focus-visible {
+  outline-color: #fff;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .profile__avatar-btn {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .profile__avatar-container:hover .profile__avatar-btn,
+  .profile__avatar-container:focus-within .profile__avatar-btn {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .modal__close-btn:hover {
+    transform: rotate(90deg);
+    background-color: transparent;
+  }
+
+  .modal__close-btn_type_preview:hover {
+    background-color: #212121;
+  }
+
+  .profile__edit-btn:hover {
+    color: #212121;
+    transform: translateY(-1px);
+  }
+
+  .profile__add-btn:hover,
+  .modal__submit-btn:not(:disabled):not(.modal__submit-btn_disabled):hover {
+    transform: translateY(-2px);
+  }
+
+  .card__like-btn:hover,
+  .card__delete-btn:hover {
+    transform: scale(1.1);
+  }
+}
+
+.profile__add-btn:active,
+.modal__submit-btn:not(:disabled):active,
+.card__like-btn:active,
+.card__delete-btn:active {
+  transform: scale(0.96);
+}
+
+@media screen and (max-width: 1023px) {
+  .cards__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile__name,
+  .profile__description {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media screen and (max-width: 627px) {
+  .cards__list {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 28px;
+  }
+
+  .profile {
+    max-width: none;
+  }
+
+  .profile__avatar-container {
+    margin-right: 0;
+  }
+
+  .profile__avatar-btn {
+    left: auto;
+    right: -8px;
+    bottom: 4px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .profile__add-btn {
+    margin-left: 0;
+  }
+
+  .modal__image-container {
+    max-width: 100%;
+  }
+
+  .modal__container {
+    padding: 24px 16px 20px;
+  }
+
+  .modal__input {
+    margin-bottom: 0;
+  }
+
+  .modal__caption {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal,
+  .modal *,
+  .profile button,
+  .card button,
+  .card__image {
+    transition: none;
+    animation: none;
+  }
+
+  .modal__close-btn:hover,
+  .profile button:hover,
+  .profile button:active,
+  .card button:hover,
+  .card button:active,
+  .modal button:hover,
+  .modal button:active {
+    transform: none;
+  }
+}
+
+/* Center delete-button labels in every state. */
+.modal__submit-btn_type_delete {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+/* Warm ivory gallery polish. */
+
+.page {
+  background-color: #f8f7f3;
+  color: #212121;
+}
+
+.profile__description,
+.modal__label,
+.modal__input,
+.modal__input::placeholder,
+.modal__error,
+.card__like-count {
+  font-weight: 400;
+}
+
+.profile__description,
+.modal__label {
+  line-height: 1.5;
+}
+
+.modal__input {
+  line-height: 1.4;
+}
+
+.modal__input::placeholder {
+  color: #737373;
+}
+
+.card__title {
+  line-height: 1.4;
+}
+
+.card__like-btn {
+  width: 44px;
+  height: 44px;
+  background-size: 23px 20px;
+  opacity: 0.7;
+}
+
+.card__like-btn_active,
+.card__like-btn_active:hover {
+  opacity: 1;
+}
+
+.card__like-container {
+  gap: 2px;
+}
+
+.card__delete-btn {
+  width: 44px;
+  height: 44px;
+  top: 6px;
+  right: 6px;
+  background-position: center;
+  background-size: 32px 32px;
+  opacity: 0.85;
+}
+
+.modal__close-btn_type_preview {
+  background-color: #212121b3;
+}
+
+.modal__title_delete {
+  display: block;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.modal__delete-description {
+  margin: 0 0 28px;
+  color: #595959;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+@media screen and (max-width: 627px) {
+  .profile {
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+
+  .profile__description {
+    margin-bottom: 12px;
+  }
+
+  .profile__column {
+    margin-bottom: 12px;
+  }
+
+  .profile__edit-btn {
+    margin-top: 0;
+  }
+
+  .profile__avatar-btn {
+    right: -6px;
+    bottom: 6px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: transparent;
+    isolation: isolate;
+    opacity: 1;
+  }
+
+  .profile__avatar-btn::before {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    z-index: -1;
+    background-color: #212121;
+    border: 2px solid #f8f7f3;
+    border-radius: 50%;
+  }
+
+  .profile__pencil-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+  }
+
+  .modal__delete-description {
+    margin-bottom: 24px;
+    font-size: 14px;
+  }
+}
+
+/* Prevent profile-name descender clipping. */
+.profile__name {
+  line-height: 1.4;
+}

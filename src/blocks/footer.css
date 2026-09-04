@@ -1,15 +1,37 @@
 .footer {
-  margin: auto;
-  padding: 60px 60px;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0 auto;
+  padding: 40px 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 400;
-  font-size: 16px;
-  line-height: 1;
-  color: #212121b2;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #595959;
+  text-align: center;
 }
 
 .footer__credit {
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.footer__brand {
+  font-weight: 500;
+  color: #212121;
+}
+
+.footer__author {
+  font-size: 13px;
+}
+
+@media screen and (max-width: 627px) {
+  .footer {
+    padding: 28px 16px;
+  }
 }

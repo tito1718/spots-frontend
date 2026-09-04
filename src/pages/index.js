@@ -85,6 +85,15 @@ function getCardElement(data) {
   title.textContent = data.name;
   image.src = data.link;
   image.alt = data.name;
+  image.tabIndex = 0;
+  image.setAttribute("role", "button");
+  image.setAttribute("aria-label", `View photo: ${data.name}`);
+  image.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      image.click();
+    }
+  });
 
   //LIKES//
 
@@ -128,7 +137,7 @@ function getCardElement(data) {
     previewImageEl.src = data.link;
     previewImageEl.alt = data.name;
     captionEl.textContent = data.name;
-    openModal(previewModal);
+    openModal(previewModal, image);
   });
 
   return cardElement;
