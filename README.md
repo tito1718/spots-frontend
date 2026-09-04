@@ -1,97 +1,122 @@
-# Project 3: Spots
+# Spots
 
-"Spots” is a modern, interactive image-sharing web application.
+A responsive photo-sharing frontend built with HTML, CSS, JavaScript, and Vite. Browse photos, update your profile, and interact with an API-backed gallery.
 
-## Description of the site: Spots
+Created by Cesar Chirino as a TripleTen project and refined with responsive layouts, accessible modals, and organized component styles.
 
-Users will be able to add and remove photos, like photos from other users, and make minor adjustments to their profile.
+## Features
 
-### Tech Overview: Spots
+- Edit your profile name, biography, and avatar.
+- Use a bundled local avatar fallback when the profile image is missing or fails to load.
+- Add photo posts using an image URL and caption.
+- Like and unlike posts.
+- Delete your own posts through a confirmation dialog.
+- Open photos in an image-preview modal.
+- Validate form inputs and display field-level errors.
+- Show loading states during form submissions.
 
-#### Core
+## Responsive Design and Accessibility
+
+- Three-column desktop, two-column tablet, and single-column mobile gallery layouts.
+- Responsive profile, form, and image-preview layouts.
+- Keyboard focus indicators and keyboard-accessible photo previews.
+- Modal closing through the close button, Escape, or overlay.
+- Focus containment inside open modals and focus restoration when closed.
+- Background scroll locking while a modal is open.
+- Reduced-motion styles for users who request less animation.
+
+## Technology
 
 - HTML
-- CSS (BEM methodology)
-- JavaScript (ES6 Modules)
+- CSS with BEM-style component naming
+- JavaScript ES modules
+- Vite for development and production builds
+- Fetch-based API client
 
-#### Tooling
+## Local Development
 
-- Webpack — bundling & dev server
-- Babel — ES6 compatibility
-- PostCSS — CSS processing
+Install a Node.js version compatible with the project's Vite dependency, together with npm.
 
-#### Architecture
+```bash
+git clone https://github.com/tito1718/spots-frontend.git
+cd spots-frontend
+npm ci
+npm run dev
+```
 
-- Figma
-- Images
-- Modular file structure
-- Responsive design
+Use the local address printed by Vite. API-dependent features also require working API configuration and network access.
 
-#### User Profile
+## Available Commands
 
-- Edit profile name and description
-- Update avatar image via URL
-- Data synced with remote API
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the development server and open the browser |
+| `npm run build` | Generate the production build in `dist/` |
+| `npm run preview` | Preview the production build locally |
 
-#### Cards (Posts)
+Run `npm run build` before starting a production preview. The preview server is for local verification, not production hosting.
 
-- Create new image posts
-- Delete your own posts
-- Preview images in a modal
-- Dynamic rendering from API data
+## Project Organization
 
-#### Likes System
+- `index.html` — page markup, templates, and modal forms.
+- `src/pages/index.js` — page initialization and interaction wiring.
+- `src/pages/index.css` — stylesheet imports.
+- `src/blocks/` — component styles and shared interaction rules.
+- `src/utils/Api.js` — API client.
+- `src/utils/helpers.js` — modal and loading-state helpers.
+- `src/scripts/validation.js` — form validation.
+- `src/images/` — bundled images and icons.
+- `src/vendor/` — font declarations, font files, and normalization styles.
 
-- Like/unlike cards
-- Local persistence using `localStorage`
-- Like count updates instantly in UI
+Component styles live with their corresponding block. `refinements.css` contains shared transitions, focus indicators, hover effects, and reduced-motion rules. Meaningful section comments keep source files easy to navigate.
 
-#### Modals & UX
+## API Integration
 
-- Open/close modals smoothly
-- Close via:
-  - Close button
-  - Escape key
-  - Clicking outside (overlay)
-- Loading states ("Saving...", "Deleting...")
+The frontend loads gallery and profile data through its API client. It does not currently use browser `localStorage` or `sessionStorage` for persistence.
 
-#### Form Validation
+The separate Spots backend is maintained in [spots-backend](https://github.com/tito1718/spots-backend). Its expanded capabilities should not be assumed to be available in this frontend until integration is completed and tested.
 
-- Real-time input validation
-- Error messaging per field
-- Submit button state control
-- Reset validation on modal open
+Do not commit private server credentials or secrets. Values shipped in frontend JavaScript are visible to users.
 
-**Images**
+## Assets
 
-Images are been exported directly from Figma.
+Active icons have descriptive filenames. Unused sample photos and obsolete icon variants have been removed.
 
-**HTML**
+The current profile fallback is bundled with the application, so it does not depend on a third-party image URL. Gallery photos supplied through external URLs still depend on their respective hosts.
 
-This markup language contains a body with a header, content with images, cards and a footer.
+## Verification
 
-**CSS**
+Before committing changes:
 
-The styling sheet consist of blocks (card, cards, content, footer, header,modal, page and profile).
+```bash
+npm run build
+git diff --check
+```
 
-**Responsive design**
+Also verify desktop and mobile layouts, long text, form validation, image previews, modal keyboard behavior, and loading states in the browser. A successful build alone does not verify visual behavior or API integration.
 
-This project is meant to fit, respond and addapt to different screen sizes.
+## Original Design
 
-**Figma**
+[View the original Spots design in Figma](https://www.figma.com/file/BBNm2bC3lj8QQMHlnqRsga/Sprint-3-Project-%E2%80%94-Spots?type=design&node-id=2%3A60&mode=design&t=afgNFybdorZO6cQo-1)
 
-- [Link to the project on Figma](https://www.figma.com/file/BBNm2bC3lj8QQMHlnqRsga/Sprint-3-Project-%E2%80%94-Spots?type=design&node-id=2%3A60&mode=design&t=afgNFybdorZO6cQo-1)
+The current interface builds on the original design with additional visual and accessibility refinements.
 
-##### Deployment
+## Historical Deployment
 
-[Deployment link](https://tito1718.github.io/se_project_spots/)
+[Original GitHub Pages deployment](https://tito1718.github.io/se_project_spots/)
 
-###### Project Pitch Videos
+This historical deployment may not reflect the current repository.
 
-Check out these videos, where I describe my project and some challenges I faced while building it:
+## Project Pitch Videos
 
-- [Loom | Cesar Chirino | Project Pitch | Spots Stage 2 | 16 February 2026](https://drive.google.com/file/d/1BjCO97bqkg8_Ys9_1gIXQbi-gIEdz9Sl/view?usp=sharing)
+- [Stage 2 — February 16, 2026](https://drive.google.com/file/d/1BjCO97bqkg8_Ys9_1gIXQbi-gIEdz9Sl/view?usp=sharing)
+- [Stage 9 — April 5, 2026](https://www.loom.com/share/5e626d7134af49cbb574b3efabe6e1f2)
+- [Final Stage — May 5, 2026](https://www.loom.com/share/851da114a00748d28464fc934010df4f)
 
-- [Loom | Cesar Chirino | Project Pitch | Spots Stage 9 | 5 April 2026] (https://www.loom.com/share/5e626d7134af49cbb574b3efabe6e1f2)
+## Author
 
-- [Loom | Cesar Chirino | Project Pitch | Spots Stage Final | 5 May 2026] (https://www.loom.com/share/851da114a00748d28464fc934010df4f)
+[Cesar Chirino](https://github.com/tito1718)
+
+## License
+
+ISC, as declared in `package.json`.

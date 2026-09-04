@@ -12,7 +12,6 @@
   },
   "license": "ISC",
   "author": "Cesar Chirino",
-  "main": "index.js",
   "scripts": {
     "build": "vite build",
     "dev": "vite --open",

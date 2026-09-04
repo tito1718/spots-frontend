@@ -61,27 +61,6 @@
   content: "Edit Avatar";
 }
 
-/* AVATAR FORM CONTROL */
-
-.avatar__submit-btn {
-  width: 110px;
-  height: 16px;
-  background-color: #212121;
-  border-radius: 8px;
-  padding-top: 18px;
-  padding-right: 32px;
-  padding-bottom: 18px;
-  padding-left: 32px;
-  gap: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fcf5e5;
-  font-weight: 500;
-  font-size: 16px;
-  line-height: 100%;
-}
-
 /* PROFILE NAME */
 
 .profile__name {
