@@ -1,4 +1,4 @@
-//API CLASS//
+// API CLIENT //
 
 class Api {
   constructor({ baseUrl, headers }) {
@@ -6,7 +6,7 @@ class Api {
     this._headers = headers;
   }
 
-  //HANDLE RESPONSE//
+  // RESPONSE HANDLING //
 
   _handleResponse(res) {
     if (res.ok) {
@@ -16,7 +16,7 @@ class Api {
     return Promise.reject(new Error(`Error: ${res.status}`));
   }
 
-  //REQUEST//
+  // REQUEST HANDLING //
 
   _request(endpoint, options = {}) {
     return fetch(`${this._baseUrl}${endpoint}`, {
@@ -29,13 +29,13 @@ class Api {
     });
   }
 
-  //APP INFO//
+  // INITIAL APPLICATION DATA //
 
   getAppInfo() {
     return Promise.all([this.getInitialCards(), this.getUserInfo()]);
   }
 
-  //CARDS//
+  // CARD REQUESTS //
 
   getInitialCards() {
     return this._request("/cards");
@@ -58,7 +58,7 @@ class Api {
     });
   }
 
-  //LIKES//
+  // LIKE REQUESTS //
 
   likeCard(cardId) {
     return this._request(`/cards/${cardId}/likes`, {
@@ -72,7 +72,7 @@ class Api {
     });
   }
 
-  //USER//
+  // PROFILE REQUESTS //
 
   getUserInfo() {
     return this._request("/users/me");
@@ -100,6 +100,6 @@ class Api {
   }
 }
 
-//EXPORT//
+// EXPORT //
 
 export default Api;

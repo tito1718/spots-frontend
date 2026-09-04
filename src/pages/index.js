@@ -1,4 +1,4 @@
-//IMPORTS//
+// IMPORTS //
 
 import "./index.css";
 import {
@@ -14,7 +14,7 @@ import penWhiteIcon from "../images/spots-images/edit-light.svg";
 import Api from "../utils/Api.js";
 import { openModal, closeModal, setLoadingState } from "../utils/helpers.js";
 
-//API//
+// API CONFIGURATION //
 
 const api = new Api({
   baseUrl: "https://around-api.en.tripleten-services.com/v1",
@@ -24,12 +24,13 @@ const api = new Api({
   },
 });
 
-//STATE//
+// APPLICATION STATE //
 
 let currentUserId = null;
 let cardToDelete = null;
+let isDeleting = false;
 
-//DOM//
+// DOM REFERENCES AND AVATAR FALLBACK //
 
 const profileNameEl = document.querySelector(".profile__name");
 const profileDescriptionEl = document.querySelector(".profile__description");
@@ -66,7 +67,7 @@ const cardTemplate = document
   .content.querySelector(".card");
 const cardsList = document.querySelector(".cards__list");
 
-//OVERLAY CLOSE//
+// OVERLAY CLOSING //
 
 document.querySelectorAll(".modal").forEach((modal) => {
   modal.addEventListener("mousedown", (evt) => {
@@ -76,7 +77,7 @@ document.querySelectorAll(".modal").forEach((modal) => {
   });
 });
 
-//CARD//
+// CARD CREATION //
 
 function getCardElement(data) {
   const cardElement = cardTemplate.cloneNode(true);
@@ -87,7 +88,7 @@ function getCardElement(data) {
   const deleteBtn = cardElement.querySelector(".card__delete-btn");
   const ownerId = typeof data.owner === "object" ? data.owner._id : data.owner;
 
-  //DATA//
+  // CARD CONTENT AND KEYBOARD ACCESS //
 
   title.textContent = data.name;
   image.src = data.link;
@@ -102,14 +103,21 @@ function getCardElement(data) {
     }
   });
 
-  //LIKES//
+  // LIKE INTERACTION //
 
   let isLiked = Boolean(data.isLiked);
+  let isLikePending = false;
   let likeCountValue =
     typeof data.likesCount === "number" ? data.likesCount : 0;
   likeCount.textContent = likeCountValue;
   likeBtn.classList.toggle("card__like-btn_active", isLiked);
   likeBtn.addEventListener("click", () => {
+    if (isLikePending) return;
+
+    isLikePending = true;
+    likeBtn.disabled = true;
+    likeBtn.setAttribute("aria-busy", "true");
+
     const apiCall = isLiked ? api.unlikeCard(data._id) : api.likeCard(data._id);
     apiCall
       .then((updatedCard) => {
@@ -124,10 +132,15 @@ function getCardElement(data) {
         likeCount.textContent = likeCountValue;
         likeBtn.classList.toggle("card__like-btn_active", isLiked);
       })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => {
+        isLikePending = false;
+        likeBtn.disabled = false;
+        likeBtn.setAttribute("aria-busy", "false");
+      });
   });
 
-  //DELETE//
+  // DELETE CONFIRMATION //
 
   if (ownerId === currentUserId) {
     deleteBtn.addEventListener("click", () => {
@@ -138,7 +151,7 @@ function getCardElement(data) {
     deleteBtn.remove();
   }
 
-  //PREVIEW//
+  // IMAGE PREVIEW //
 
   image.addEventListener("click", () => {
     previewImageEl.src = data.link;
@@ -150,29 +163,38 @@ function getCardElement(data) {
   return cardElement;
 }
 
-//RENDER//
+// CARD RENDERING //
 
 function renderCard(item) {
   const card = getCardElement(item);
   cardsList.prepend(card);
 }
 
-//DELETE FORM//
+// DELETE SUBMISSION //
 
 deleteForm.addEventListener("submit", (evt) => {
   evt.preventDefault();
-  if (!cardToDelete) return;
+  if (!cardToDelete || isDeleting) return;
+
+  // Keep the submitted target stable if another photo is selected.
+  const submittedCard = cardToDelete;
+  isDeleting = true;
   setLoadingState(deleteSubmitBtn, true, "Delete", "Deleting...");
 
   api
-    .deleteCard(cardToDelete.id)
+    .deleteCard(submittedCard.id)
     .then(() => {
-      cardToDelete.element.remove();
-      closeModal(deleteModal);
-      cardToDelete = null;
+      submittedCard.element.remove();
+
+      // Do not dismiss a confirmation opened for a different selection.
+      if (cardToDelete === submittedCard) {
+        closeModal(deleteModal);
+        cardToDelete = null;
+      }
     })
     .catch(console.error)
     .finally(() => {
+      isDeleting = false;
       setLoadingState(deleteSubmitBtn, false, "Delete", "Deleting...");
     });
 });
@@ -181,7 +203,7 @@ cancelDeleteBtn.addEventListener("click", () => {
   closeModal(deleteModal);
 });
 
-//CLOSE BUTTONS//
+// CLOSE CONTROLS //
 
 document.querySelectorAll(".modal__close-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
@@ -189,42 +211,40 @@ document.querySelectorAll(".modal__close-btn").forEach((btn) => {
   });
 });
 
-//BUTTONS//
+// FORM VALIDATION RESET //
+
+function resetModalValidation(form) {
+  resetValidation(
+    form,
+    Array.from(form.querySelectorAll(settings.inputSelector)),
+    settings,
+  );
+}
+
+// PROFILE ACTION BUTTONS //
 
 editProfileBtn.addEventListener("click", () => {
   const nameInput = editProfileForm.querySelector("#profile_name-input");
   const descInput = editProfileForm.querySelector("#profile_description-input");
   nameInput.value = profileNameEl.textContent;
   descInput.value = profileDescriptionEl.textContent;
-  resetValidation(
-    editProfileForm,
-    Array.from(editProfileForm.querySelectorAll(".modal__input")),
-    settings,
-  );
+  resetModalValidation(editProfileForm);
   openModal(editProfileModal);
 });
 
 newPostBtn.addEventListener("click", () => {
   newPostForm.reset();
-  resetValidation(
-    newPostForm,
-    Array.from(newPostForm.querySelectorAll(".modal__input")),
-    settings,
-  );
+  resetModalValidation(newPostForm);
   openModal(newPostModal);
 });
 
 avatarEditBtn.addEventListener("click", () => {
   avatarForm.reset();
-  resetValidation(
-    avatarForm,
-    Array.from(avatarForm.querySelectorAll(".modal__input")),
-    settings,
-  );
+  resetModalValidation(avatarForm);
   openModal(avatarModal);
 });
 
-//EDIT PROFILE//
+// PROFILE SUBMISSION //
 
 editProfileForm.addEventListener("submit", (evt) => {
   evt.preventDefault();
@@ -247,7 +267,7 @@ editProfileForm.addEventListener("submit", (evt) => {
     });
 });
 
-//NEW POST//
+// POST SUBMISSION //
 
 newPostForm.addEventListener("submit", (evt) => {
   evt.preventDefault();
@@ -270,7 +290,7 @@ newPostForm.addEventListener("submit", (evt) => {
     });
 });
 
-//AVATAR//
+// AVATAR SUBMISSION //
 
 avatarForm.addEventListener("submit", (evt) => {
   evt.preventDefault();
@@ -292,7 +312,7 @@ avatarForm.addEventListener("submit", (evt) => {
     });
 });
 
-//INIT//
+// APPLICATION INITIALIZATION //
 
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelector(".header__logo").src = logoIcon;
@@ -313,6 +333,6 @@ document.addEventListener("DOMContentLoaded", () => {
     .catch(console.error);
 });
 
-//VALIDATION//
+// VALIDATION INITIALIZATION //
 
 enableValidation(settings);
