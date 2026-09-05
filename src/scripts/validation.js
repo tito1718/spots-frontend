@@ -15,6 +15,7 @@ function showError(form, input, message, config) {
   if (!error) return;
 
   input.classList.add(config.inputErrorClass);
+  input.setAttribute("aria-invalid", "true");
   error.textContent = message;
 }
 
@@ -23,6 +24,7 @@ function hideError(form, input, config) {
   if (!error) return;
 
   input.classList.remove(config.inputErrorClass);
+  input.setAttribute("aria-invalid", "false");
   error.textContent = "";
 }
 
