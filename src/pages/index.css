@@ -1,5 +1,10 @@
+/* VENDOR STYLES */
+
 @import url(../vendor/normalize.css);
 @import url(../vendor/fonts.css);
+
+/* COMPONENT STYLES */
+
 @import url(../blocks/page.css);
 @import url(../blocks/header.css);
 @import url(../blocks/content.css);
@@ -8,5 +13,8 @@
 @import url(../blocks/card.css);
 @import url(../blocks/footer.css);
 @import url(../blocks/modal.css);
+
+/* SHARED INTERACTION AND FEEDBACK STYLES */
+
 @import url(../blocks/refinements.css);
 @import url(../blocks/request-error.css);

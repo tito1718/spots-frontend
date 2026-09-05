@@ -1,9 +1,13 @@
+/* HEADER LAYOUT */
+
 .header {
   background-color: #fff;
   padding: 10px 0;
   display: flex;
   justify-content: center;
 }
+
+/* BRAND LOGO */
 
 .header__logo {
   width: 94px;
