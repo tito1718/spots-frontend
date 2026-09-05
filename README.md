@@ -48,11 +48,11 @@ Use the local address printed by Vite. API-dependent features also require worki
 
 ## Available Commands
 
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Start the development server and open the browser |
-| `npm run build` | Generate the production build in `dist/` |
-| `npm run preview` | Preview the production build locally |
+| Command           | Purpose                                           |
+| ----------------- | ------------------------------------------------- |
+| `npm run dev`     | Start the development server and open the browser |
+| `npm run build`   | Generate the production build in `dist/`          |
+| `npm run preview` | Preview the production build locally              |
 
 Run `npm run build` before starting a production preview. The preview server is for local verification, not production hosting.
 

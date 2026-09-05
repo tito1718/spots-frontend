@@ -87,7 +87,12 @@ function lockBackground(modal) {
 
   const body = document.body;
   const properties = [
-    "position", "top", "left", "width", "overflow", "padding-right",
+    "position",
+    "top",
+    "left",
+    "width",
+    "overflow",
+    "padding-right",
   ];
   const savedStyles = properties.map((property) => [
     property,
@@ -105,8 +110,7 @@ function lockBackground(modal) {
 
   if (scrollbarWidth > 0) {
     body.style.paddingRight =
-      parseFloat(getComputedStyle(body).paddingRight) +
-      scrollbarWidth + "px";
+      parseFloat(getComputedStyle(body).paddingRight) + scrollbarWidth + "px";
   }
 
   body.style.position = "fixed";
@@ -147,9 +151,7 @@ function unlockBackground() {
 function focusInitialControl() {
   if (!currentModal) return;
 
-  const cancel = currentModal.querySelector(
-    ".modal__submit-btn_type_cancel",
-  );
+  const cancel = currentModal.querySelector(".modal__submit-btn_type_cancel");
   const focusable = getFocusable(currentModal);
   const target =
     (cancel && focusable.includes(cancel) ? cancel : focusable[0]) ||
@@ -241,7 +243,8 @@ export function closeModal(modal) {
 
   const fallback = document.querySelector(".profile__add-btn");
   const target =
-    opener?.isConnected && !opener.matches(":disabled") &&
+    opener?.isConnected &&
+    !opener.matches(":disabled") &&
     !opener.closest("[inert]")
       ? opener
       : fallback;
@@ -260,12 +263,7 @@ export function closeModal(modal) {
 
 // LOADING STATE //
 
-export function setLoadingState(
-  button,
-  isLoading,
-  defaultText,
-  loadingText,
-) {
+export function setLoadingState(button, isLoading, defaultText, loadingText) {
   if (!button) return;
 
   button.textContent = isLoading ? loadingText : defaultText;
