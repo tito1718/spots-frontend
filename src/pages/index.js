@@ -11,7 +11,8 @@ import {
   settings,
 } from "../scripts/validation.js";
 import logoIcon from "../images/spots-images/spots-logo.svg";
-import avatarDefault from "../images/spots-images/avatar-fallback.jpg";
+import spotsMark from "../images/spots-images/spots-mark.svg";
+import avatarDefault from "../images/spots-images/user-avatar-fallback.svg";
 import penIcon from "../images/spots-images/edit-dark.svg";
 import plusIcon from "../images/spots-images/plus.svg";
 import penWhiteIcon from "../images/spots-images/edit-light.svg";
@@ -21,11 +22,7 @@ import { openModal, closeModal, setLoadingState } from "../utils/helpers.js";
 // API CONFIGURATION //
 
 const api = new Api({
-  baseUrl: "https://around-api.en.tripleten-services.com/v1",
-  headers: {
-    authorization: "95e6328a-c5c5-4efa-b41d-e406591e5a9c",
-    "Content-Type": "application/json",
-  },
+  baseUrl: import.meta.env.VITE_API_BASE_URL || "http://localhost:3002",
 });
 
 // APPLICATION STATE //
@@ -33,6 +30,7 @@ const api = new Api({
 let currentUserId = null;
 let cardToDelete = null;
 let isDeleting = false;
+let isAuthenticated = false;
 
 // DOM REFERENCES AND AVATAR FALLBACK //
 
@@ -54,6 +52,14 @@ const newPostModal = document.querySelector("#new-post-modal");
 const previewModal = document.querySelector("#preview-modal");
 const avatarModal = document.querySelector("#edit-avatar-modal");
 const deleteModal = document.querySelector("#delete-modal");
+const loginModal = document.querySelector("#login-modal");
+const registerModal = document.querySelector("#register-modal");
+const loginForm = document.querySelector("#login-form");
+const registerForm = document.querySelector("#register-form");
+const loginBtn = document.querySelector(".header__login-btn");
+const logoutBtn = document.querySelector(".header__logout-btn");
+const showRegisterBtn = document.querySelector("#show-register-btn");
+const showLoginBtn = document.querySelector("#show-login-btn");
 const editProfileForm = editProfileModal.querySelector(".modal__form");
 const newPostForm = newPostModal.querySelector(".modal__form");
 const avatarForm = avatarModal.querySelector(".modal__form");
@@ -80,6 +86,67 @@ document.querySelectorAll(".modal").forEach((modal) => {
     }
   });
 });
+
+// AUTHENTICATION VIEW //
+
+function setAuthenticatedView(authenticated) {
+  isAuthenticated = authenticated;
+  loginBtn.hidden = authenticated;
+  logoutBtn.hidden = !authenticated;
+  editProfileBtn.hidden = !authenticated;
+  newPostBtn.hidden = !authenticated;
+  avatarEditBtn.hidden = !authenticated;
+}
+
+function displayUser(user) {
+  currentUserId = user._id;
+  profileNameEl.textContent = user.name;
+  profileDescriptionEl.textContent = user.about || "Sharing memorable places.";
+  profileAvatarImg.classList.remove("profile__avatar_type_guest");
+  profileAvatarImg.src = user.avatar || avatarDefault;
+}
+
+function displayGuestProfile() {
+  currentUserId = null;
+  profileNameEl.textContent = "Welcome to Spots";
+  profileDescriptionEl.textContent =
+    "Log in to share, like, and manage your favorite places.";
+  profileAvatarImg.classList.add("profile__avatar_type_guest");
+  profileAvatarImg.src = spotsMark;
+}
+
+function renderCards(cards) {
+  cardsList.replaceChildren();
+  cards.forEach(renderCard);
+}
+
+function openAuthModal(modal) {
+  const form = modal.querySelector(".modal__form");
+  form.reset();
+  resetModalValidation(form);
+  openModal(modal);
+}
+
+async function loadAuthenticatedApp() {
+  const [cards, user] = await api.getAppInfo();
+  setAuthenticatedView(true);
+  displayUser(user);
+  renderCards(cards);
+  clearRequestError();
+}
+
+async function loadGuestApp() {
+  setAuthenticatedView(false);
+  displayGuestProfile();
+
+  try {
+    const cards = await api.getInitialCards();
+    renderCards(cards);
+  } catch {
+    cardsList.replaceChildren();
+    showRequestError("Could not load public photos. Please try again shortly.");
+  }
+}
 
 // CARD CREATION //
 
@@ -118,6 +185,11 @@ function getCardElement(data) {
   likeBtn.addEventListener("click", () => {
     if (isLikePending) return;
 
+    if (!isAuthenticated) {
+      openAuthModal(loginModal);
+      return;
+    }
+
     clearRequestError();
     isLikePending = true;
     likeBtn.disabled = true;
@@ -149,7 +221,7 @@ function getCardElement(data) {
 
   // DELETE CONFIRMATION //
 
-  if (ownerId === currentUserId) {
+  if (isAuthenticated && ownerId === currentUserId) {
     deleteBtn.addEventListener("click", () => {
       clearRequestError(deleteForm);
       cardToDelete = { element: cardElement, id: data._id };
@@ -259,6 +331,112 @@ avatarEditBtn.addEventListener("click", () => {
   openModal(avatarModal);
 });
 
+// AUTHENTICATION MODAL SWITCHING //
+
+loginBtn.addEventListener("click", () => {
+  openAuthModal(loginModal);
+});
+
+showRegisterBtn.addEventListener("click", () => {
+  closeModal(loginModal);
+  openAuthModal(registerModal);
+});
+
+showLoginBtn.addEventListener("click", () => {
+  closeModal(registerModal);
+  openAuthModal(loginModal);
+});
+
+// LOGIN SUBMISSION //
+
+loginForm.addEventListener("submit", async (evt) => {
+  evt.preventDefault();
+  clearRequestError(loginForm);
+
+  const button = loginForm.querySelector(".modal__submit-btn");
+  const email = loginForm.elements.email.value.trim();
+  const password = loginForm.elements.password.value;
+
+  setLoadingState(button, true, "Log in", "Logging in...");
+
+  try {
+    await api.login({ email, password });
+    await loadAuthenticatedApp();
+    loginForm.reset();
+    closeModal(loginModal);
+  } catch (error) {
+    const message =
+      error.status === 401
+        ? "The email or password is incorrect."
+        : "Could not log in. Please try again.";
+
+    showRequestError(message, loginForm);
+  } finally {
+    setLoadingState(button, false, "Log in", "Logging in...");
+  }
+});
+
+// REGISTRATION SUBMISSION //
+
+registerForm.addEventListener("submit", async (evt) => {
+  evt.preventDefault();
+  clearRequestError(registerForm);
+
+  const button = registerForm.querySelector(".modal__submit-btn");
+  const name = registerForm.elements.name.value.trim();
+  const about = registerForm.elements.about.value.trim();
+  const avatar = registerForm.elements.avatar.value.trim();
+  const email = registerForm.elements.email.value.trim();
+  const password = registerForm.elements.password.value;
+
+  setLoadingState(button, true, "Create account", "Creating...");
+
+  try {
+    await api.register({
+      name,
+      about: about || undefined,
+      avatar: avatar || undefined,
+      email,
+      password,
+    });
+    await api.login({ email, password });
+    await loadAuthenticatedApp();
+    registerForm.reset();
+    closeModal(registerModal);
+  } catch (error) {
+    const message =
+      error.status === 409
+        ? "An account with that email already exists."
+        : error.status === 400
+          ? "Please check your information and try again."
+          : "Could not create your account. Please try again.";
+
+    showRequestError(message, registerForm);
+  } finally {
+    setLoadingState(button, false, "Create account", "Creating...");
+  }
+});
+
+// LOGOUT //
+
+logoutBtn.addEventListener("click", async () => {
+  if (logoutBtn.disabled) return;
+
+  clearRequestError();
+  logoutBtn.disabled = true;
+  logoutBtn.textContent = "Logging out...";
+
+  try {
+    await api.logout();
+    await loadGuestApp();
+  } catch {
+    showRequestError("Could not log out. Please try again.");
+  } finally {
+    logoutBtn.disabled = false;
+    logoutBtn.textContent = "Log out";
+  }
+});
+
 // PROFILE SUBMISSION //
 
 editProfileForm.addEventListener("submit", (evt) => {
@@ -354,20 +532,18 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelector(".profile__add-btn img").src = plusIcon;
   document.querySelector(".profile__pencil-icon").src = penWhiteIcon;
 
-  api
-    .getAppInfo()
-    .then(([cards, user]) => {
-      currentUserId = user._id;
-      profileNameEl.textContent = user.name;
-      profileDescriptionEl.textContent = user.about;
-      profileAvatarImg.src = user.avatar || avatarDefault;
-      cards.forEach(renderCard);
-    })
-    .catch(() => {
-      showRequestError(
-        "Could not load your profile and photos. Check your connection, then reload the page.",
-      );
-    });
+  setAuthenticatedView(false);
+  displayGuestProfile();
+
+  loadAuthenticatedApp().catch(async (error) => {
+    await loadGuestApp();
+
+    if (error.status === 401) {
+      return;
+    }
+
+    showRequestError("Could not connect to Spots. Please try again shortly.");
+  });
 });
 
 // VALIDATION INITIALIZATION //

@@ -28,6 +28,10 @@
   object-fit: cover;
 }
 
+.profile__avatar_type_guest {
+  object-fit: contain;
+}
+
 /* AVATAR EDIT CONTROL */
 
 .profile__avatar-btn {

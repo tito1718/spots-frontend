@@ -18,24 +18,33 @@
     <div class="page">
       <header class="header">
         <img src="" alt="Spots logo" class="header__logo" />
+        <button type="button" class="header__login-btn">Log in</button>
+        <button type="button" class="header__logout-btn" hidden>Log out</button>
       </header>
 
       <main class="content">
         <section class="profile page__section">
           <div class="profile__avatar-container">
-            <button class="profile__avatar-btn" aria-label="Edit avatar">
+            <button
+              class="profile__avatar-btn"
+              aria-label="Edit avatar"
+              type="button"
+              hidden
+            >
               <img src="" alt="Edit avatar icon" class="profile__pencil-icon" />
             </button>
             <img src="" alt="Users profile picture" class="profile__avatar" />
           </div>
           <div class="profile__column">
-            <h1 class="profile__name">Bessie Coleman</h1>
-            <p class="profile__description">Civil Aviator</p>
-            <button type="button" class="profile__edit-btn">
+            <h1 class="profile__name">Welcome to Spots</h1>
+            <p class="profile__description">
+              Log in to share, like, and manage your favorite places.
+            </p>
+            <button type="button" class="profile__edit-btn" hidden>
               <img src="" alt="Edit profile icon" /> Edit Profile
             </button>
           </div>
-          <button type="button" class="profile__add-btn">
+          <button type="button" class="profile__add-btn" hidden>
             <img src="" alt="Add post icon" /> New Post
           </button>
         </section>
@@ -211,6 +220,172 @@
         </form>
       </div>
     </div>
+    <div class="modal" id="login-modal">
+      <div class="modal__container modal__container_type_auth">
+        <button type="button" class="modal__close-btn"></button>
+        <p class="auth__eyebrow">Welcome back</p>
+        <h2 class="modal__title">Log in to Spots</h2>
+        <p class="auth__description">
+          Access your profile and continue sharing memorable places.
+        </p>
+
+        <form class="modal__form" id="login-form" novalidate>
+          <label for="login-email-input" class="modal__label">
+            Email
+            <input
+              id="login-email-input"
+              class="modal__input"
+              name="email"
+              type="email"
+              autocomplete="email"
+              maxlength="254"
+              placeholder="you@example.com"
+              required
+            />
+            <span id="login-email-input-error" class="modal__error"></span>
+          </label>
+
+          <label for="login-password-input" class="modal__label">
+            Password
+            <input
+              id="login-password-input"
+              class="modal__input"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              maxlength="72"
+              placeholder="Enter your password"
+              required
+            />
+            <span id="login-password-input-error" class="modal__error"></span>
+          </label>
+
+          <button
+            type="submit"
+            class="modal__submit-btn modal__submit-btn_type_auth"
+          >
+            Log in
+          </button>
+        </form>
+
+        <p class="auth__switch">
+          New to Spots?
+          <button type="button" class="auth__switch-btn" id="show-register-btn">
+            Create an account
+          </button>
+        </p>
+      </div>
+    </div>
+
+    <div class="modal" id="register-modal">
+      <div class="modal__container modal__container_type_auth">
+        <button type="button" class="modal__close-btn"></button>
+        <p class="auth__eyebrow">Join Spots</p>
+        <h2 class="modal__title">Create your account</h2>
+        <p class="auth__description">
+          Build your profile and start sharing your favorite places.
+        </p>
+
+        <form class="modal__form" id="register-form" novalidate>
+          <label for="register-name-input" class="modal__label">
+            Name
+            <input
+              id="register-name-input"
+              class="modal__input"
+              name="name"
+              type="text"
+              autocomplete="name"
+              minlength="2"
+              maxlength="40"
+              placeholder="Your name"
+              required
+            />
+            <span id="register-name-input-error" class="modal__error"></span>
+          </label>
+
+          <label for="register-about-input" class="modal__label">
+            About <span class="auth__optional">(optional)</span>
+            <input
+              id="register-about-input"
+              class="modal__input"
+              name="about"
+              type="text"
+              maxlength="200"
+              placeholder="Tell us a little about yourself"
+            />
+            <span id="register-about-input-error" class="modal__error"></span>
+          </label>
+
+          <label for="register-avatar-input" class="modal__label">
+            Avatar URL <span class="auth__optional">(optional)</span>
+            <input
+              id="register-avatar-input"
+              class="modal__input"
+              name="avatar"
+              type="url"
+              autocomplete="url"
+              placeholder="https://example.com/photo.jpg"
+            />
+            <span id="register-avatar-input-error" class="modal__error"></span>
+          </label>
+
+          <label for="register-email-input" class="modal__label">
+            Email
+            <input
+              id="register-email-input"
+              class="modal__input"
+              name="email"
+              type="email"
+              autocomplete="email"
+              maxlength="254"
+              placeholder="you@example.com"
+              required
+            />
+            <span id="register-email-input-error" class="modal__error"></span>
+          </label>
+
+          <label for="register-password-input" class="modal__label">
+            Password
+            <input
+              id="register-password-input"
+              class="modal__input"
+              name="password"
+              type="password"
+              autocomplete="new-password"
+              minlength="8"
+              maxlength="72"
+              pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,72}"
+              title="Use 8–72 characters with uppercase, lowercase, and a number."
+              placeholder="Create a secure password"
+              required
+            />
+            <span
+              id="register-password-input-error"
+              class="modal__error"
+            ></span>
+          </label>
+
+          <p class="auth__password-help">
+            Use 8–72 characters with uppercase, lowercase, and a number.
+          </p>
+
+          <button
+            type="submit"
+            class="modal__submit-btn modal__submit-btn_type_auth"
+          >
+            Create account
+          </button>
+        </form>
+
+        <p class="auth__switch">
+          Already have an account?
+          <button type="button" class="auth__switch-btn" id="show-login-btn">
+            Log in
+          </button>
+        </p>
+      </div>
+    </div>
+
     <script type="module" src="/src/pages/index.js"></script>
   </body>
 </html>

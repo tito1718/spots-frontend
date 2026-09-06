@@ -1,0 +1,17 @@
+<svg
+  width="64"
+  height="64"
+  viewBox="0 0 64 64"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <rect width="64" height="64" rx="8" fill="white" />
+  <path d="M32 12V32" stroke="#212121" stroke-width="5" />
+  <path
+    d="M20 25L32 35L44 25"
+    stroke="#212121"
+    stroke-width="5"
+    stroke-linejoin="bevel"
+  />
+  <circle cx="32" cy="48" r="5" fill="#212121" />
+</svg>

@@ -152,9 +152,14 @@ function focusInitialControl() {
   if (!currentModal) return;
 
   const cancel = currentModal.querySelector(".modal__submit-btn_type_cancel");
+  const authInput = currentModal.querySelector(
+    ".modal__container_type_auth .modal__input",
+  );
   const focusable = getFocusable(currentModal);
   const target =
-    (cancel && focusable.includes(cancel) ? cancel : focusable[0]) ||
+    (cancel && focusable.includes(cancel) && cancel) ||
+    (authInput && focusable.includes(authInput) && authInput) ||
+    focusable[0] ||
     currentModal;
 
   target.focus({ preventScroll: true });
