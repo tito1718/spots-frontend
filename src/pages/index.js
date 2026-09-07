@@ -31,6 +31,8 @@ let currentUserId = null;
 let cardToDelete = null;
 let isDeleting = false;
 let isAuthenticated = false;
+let returnToProfileAfterPreview = false;
+let publicProfileOpener = null;
 
 // DOM REFERENCES AND AVATAR FALLBACK //
 
@@ -52,6 +54,7 @@ const newPostModal = document.querySelector("#new-post-modal");
 const previewModal = document.querySelector("#preview-modal");
 const avatarModal = document.querySelector("#edit-avatar-modal");
 const deleteModal = document.querySelector("#delete-modal");
+const profileModal = document.querySelector("#profile-modal");
 const loginModal = document.querySelector("#login-modal");
 const registerModal = document.querySelector("#register-modal");
 const loginForm = document.querySelector("#login-form");
@@ -76,6 +79,18 @@ const cardTemplate = document
   .querySelector("#card-template")
   .content.querySelector(".card");
 const cardsList = document.querySelector(".cards__list");
+
+// PROFILE PREVIEW RETURN //
+
+previewModal.addEventListener("modalclosed", () => {
+  if (!returnToProfileAfterPreview) return;
+
+  returnToProfileAfterPreview = false;
+
+  window.setTimeout(() => {
+    openModal(profileModal, publicProfileOpener);
+  }, 0);
+});
 
 // OVERLAY CLOSING //
 
@@ -148,6 +163,114 @@ async function loadGuestApp() {
   }
 }
 
+// PUBLIC PROFILE //
+
+function getRelationshipLabel(status) {
+  const labels = {
+    self: "This is your profile",
+    following: "Following",
+    pending: "Follow request pending",
+    none: "",
+  };
+
+  return labels[status] || "";
+}
+
+function createProfilePostElement(card) {
+  const button = document.createElement("button");
+  const image = document.createElement("img");
+
+  button.type = "button";
+  button.className = "public-profile__post";
+  button.setAttribute("aria-label", `View photo: ${card.name}`);
+
+  image.className = "public-profile__post-image";
+  image.src = card.link;
+  image.alt = card.name;
+
+  image.addEventListener("error", () => {
+    button.remove();
+  });
+
+  button.append(image);
+
+  button.addEventListener("click", () => {
+    returnToProfileAfterPreview = true;
+
+    closeModal(profileModal);
+
+    window.setTimeout(() => {
+      previewImageEl.src = card.link;
+      previewImageEl.alt = card.name;
+      captionEl.textContent = card.name;
+      openModal(previewModal, button);
+    }, 0);
+  });
+
+  return button;
+}
+
+async function openPublicProfile(userId, opener) {
+  if (!userId) return;
+
+  clearRequestError();
+
+  try {
+    const [user, posts] = await Promise.all([
+      api.getUserProfile(userId),
+      api.getUserPosts(userId),
+    ]);
+
+    const avatar = profileModal.querySelector(".public-profile__avatar");
+    const name = profileModal.querySelector(".public-profile__name");
+    const about = profileModal.querySelector(".public-profile__about");
+    const status = profileModal.querySelector(".public-profile__status");
+    const postsCount = profileModal.querySelector(
+      '[data-profile-stat="posts"]',
+    );
+    const followersCount = profileModal.querySelector(
+      '[data-profile-stat="followers"]',
+    );
+    const followingCount = profileModal.querySelector(
+      '[data-profile-stat="following"]',
+    );
+    const postsGrid = profileModal.querySelector(".public-profile__posts-grid");
+    const emptyState = profileModal.querySelector(".public-profile__empty");
+
+    name.textContent = user.name || "Spots user";
+    about.textContent = user.about || "Sharing memorable places.";
+
+    avatar.src = user.avatar || avatarDefault;
+    avatar.alt = user.name
+      ? `${user.name}'s profile picture`
+      : "Spots user profile picture";
+
+    avatar.onerror = () => {
+      const fallbackUrl = new URL(avatarDefault, document.baseURI).href;
+
+      if (avatar.src !== fallbackUrl) {
+        avatar.src = avatarDefault;
+      }
+    };
+
+    postsCount.textContent = user.postsCount ?? posts.length;
+    followersCount.textContent = user.followersCount ?? 0;
+    followingCount.textContent = user.followingCount ?? 0;
+    status.textContent = getRelationshipLabel(user.relationshipStatus);
+
+    postsGrid.replaceChildren(
+      ...posts.map((post) => createProfilePostElement(post)),
+    );
+
+    emptyState.hidden = posts.length !== 0;
+
+    publicProfileOpener = opener;
+    openModal(profileModal, opener);
+  } catch {
+    showRequestError("Could not load this profile. Please try again shortly.");
+  }
+}
+
 // CARD CREATION //
 
 function getCardElement(data) {
@@ -157,11 +280,45 @@ function getCardElement(data) {
   const likeBtn = cardElement.querySelector(".card__like-btn");
   const likeCount = cardElement.querySelector(".card__like-count");
   const deleteBtn = cardElement.querySelector(".card__delete-btn");
+  const ownerButton = cardElement.querySelector(".card__owner");
+  const ownerAvatar = cardElement.querySelector(".card__owner-avatar");
+  const ownerName = cardElement.querySelector(".card__owner-name");
   const ownerId = typeof data.owner === "object" ? data.owner._id : data.owner;
+  const owner =
+    typeof data.owner === "object" && data.owner
+      ? data.owner
+      : {
+          _id: ownerId,
+          name: "Spots user",
+          avatar: "",
+        };
 
   // CARD CONTENT AND KEYBOARD ACCESS //
 
   title.textContent = data.name;
+  ownerName.textContent = owner.name || "Spots user";
+  ownerAvatar.src = owner.avatar || avatarDefault;
+  ownerAvatar.alt = owner.name
+    ? `${owner.name}'s profile picture`
+    : "Spots user profile picture";
+
+  ownerAvatar.addEventListener("error", () => {
+    const fallbackUrl = new URL(avatarDefault, document.baseURI).href;
+
+    if (ownerAvatar.src !== fallbackUrl) {
+      ownerAvatar.src = avatarDefault;
+    }
+  });
+
+  ownerButton.setAttribute(
+    "aria-label",
+    `View ${owner.name || "Spots user"}'s profile`,
+  );
+
+  ownerButton.addEventListener("click", () => {
+    openPublicProfile(ownerId, ownerButton);
+  });
+
   image.src = data.link;
   image.alt = data.name;
   image.tabIndex = 0;

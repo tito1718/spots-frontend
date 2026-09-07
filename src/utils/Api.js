@@ -151,13 +151,14 @@ class Api {
   // INITIAL APPLICATION DATA //
 
   async getAppInfo() {
-    const session = await this.refreshSession();
+    const session = this._accessToken ? null : await this.refreshSession();
+
     const [cards, user] = await Promise.all([
       this.getInitialCards(),
       this.getUserInfo(),
     ]);
 
-    return [cards, user || session.user];
+    return [cards, user || session?.user];
   }
 
   // POST REQUESTS //
@@ -230,6 +231,16 @@ class Api {
     });
 
     return data.user;
+  }
+
+  async getUserProfile(userId) {
+    const data = await this._request(`/users/${userId}`);
+    return data.user;
+  }
+
+  async getUserPosts(userId) {
+    const data = await this._request(`/users/${userId}/posts?limit=50`);
+    return (data.posts || []).map((post) => this._toCard(post));
   }
 }
 

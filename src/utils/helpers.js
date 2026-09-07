@@ -264,6 +264,12 @@ export function closeModal(modal) {
 
   modal.inert = true;
   modal.setAttribute("aria-hidden", "true");
+
+  modal.dispatchEvent(
+    new CustomEvent("modalclosed", {
+      bubbles: false,
+    }),
+  );
 }
 
 // LOADING STATE //

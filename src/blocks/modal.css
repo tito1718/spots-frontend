@@ -355,3 +355,132 @@
     font-size: 14px;
   }
 }
+
+/* PUBLIC PROFILE */
+
+.modal__container_type_profile {
+  max-width: 760px;
+}
+
+.public-profile {
+  color: #212121;
+}
+
+.public-profile__avatar {
+  display: block;
+  width: 112px;
+  height: 112px;
+  margin-bottom: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: #f3f3f3;
+}
+
+.public-profile__identity {
+  padding-right: 48px;
+}
+
+.public-profile__name {
+  margin-bottom: 8px;
+}
+
+.public-profile__about {
+  max-width: 520px;
+  margin: 0;
+  color: #595959;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.public-profile__stats {
+  display: flex;
+  gap: 40px;
+  margin-top: 28px;
+  padding: 20px 0;
+  border-top: 1px solid #2121211a;
+  border-bottom: 1px solid #2121211a;
+}
+
+.public-profile__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.public-profile__stat-value {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.public-profile__stat-label {
+  color: #737373;
+  font-size: 14px;
+}
+
+.public-profile__status {
+  min-height: 24px;
+  margin: 16px 0 0;
+  color: #595959;
+  font-size: 14px;
+}
+
+.public-profile__posts {
+  margin-top: 28px;
+}
+
+.public-profile__posts-title {
+  margin: 0 0 16px;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.public-profile__posts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.public-profile__post {
+  aspect-ratio: 1;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: #f3f3f3;
+  cursor: pointer;
+}
+
+.public-profile__post-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 180ms ease;
+}
+
+.public-profile__post:hover .public-profile__post-image {
+  transform: scale(1.03);
+}
+
+.public-profile__empty {
+  margin: 0;
+  padding: 32px 0;
+  color: #737373;
+  text-align: center;
+}
+
+@media screen and (max-width: 627px) {
+  .public-profile__avatar {
+    width: 88px;
+    height: 88px;
+  }
+
+  .public-profile__stats {
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .public-profile__posts-grid {
+    gap: 4px;
+  }
+}

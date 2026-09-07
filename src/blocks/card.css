@@ -48,6 +48,39 @@
   overflow: hidden;
 }
 
+/* CARD DETAILS */
+
+.card__details {
+  min-width: 0;
+  flex: 1;
+}
+
+.card__owner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.card__owner-avatar {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.card__owner-name {
+  min-width: 0;
+  overflow: hidden;
+  color: #212121b2;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* DELETE CONTROL */
 
 .card__delete-btn {
@@ -121,4 +154,31 @@
   .card__title {
     font-size: 16px;
   }
+}
+
+/* CARD OWNER PROFILE CONTROL */
+
+button.card__owner {
+  width: fit-content;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.card__owner:hover .card__owner-name {
+  color: #212121;
+}
+
+button.card__owner:hover .card__owner-avatar {
+  opacity: 0.82;
+}
+
+button.card__owner:focus-visible {
+  border-radius: 6px;
+  outline: 2px solid #212121;
+  outline-offset: 3px;
 }

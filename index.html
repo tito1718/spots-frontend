@@ -59,7 +59,19 @@
                 ></button>
                 <img class="card__image" src="" alt="Card image" />
                 <div class="card__content">
-                  <h2 class="card__title"></h2>
+                  <div class="card__details">
+                    <h2 class="card__title"></h2>
+
+                    <button
+                      class="card__owner"
+                      type="button"
+                      aria-label="View profile"
+                    >
+                      <img class="card__owner-avatar" src="" alt="" />
+                      <span class="card__owner-name"></span>
+                    </button>
+                  </div>
+
                   <div class="card__like-container">
                     <button
                       aria-label="Like card"
@@ -152,6 +164,67 @@
             </label>
             <button type="submit" class="modal__submit-btn">Save</button>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="profile-modal">
+      <div class="modal__container modal__container_type_profile">
+        <button
+          type="button"
+          class="modal__close-btn"
+          aria-label="Close profile"
+        ></button>
+
+        <div class="public-profile">
+          <img class="public-profile__avatar" src="" alt="" />
+
+          <div class="public-profile__identity">
+            <h2 class="modal__title public-profile__name">Spots user</h2>
+            <p class="public-profile__about"></p>
+          </div>
+
+          <div class="public-profile__stats" aria-label="Profile statistics">
+            <div class="public-profile__stat">
+              <strong
+                class="public-profile__stat-value"
+                data-profile-stat="posts"
+              >
+                0
+              </strong>
+              <span class="public-profile__stat-label">Posts</span>
+            </div>
+
+            <div class="public-profile__stat">
+              <strong
+                class="public-profile__stat-value"
+                data-profile-stat="followers"
+              >
+                0
+              </strong>
+              <span class="public-profile__stat-label">Followers</span>
+            </div>
+
+            <div class="public-profile__stat">
+              <strong
+                class="public-profile__stat-value"
+                data-profile-stat="following"
+              >
+                0
+              </strong>
+              <span class="public-profile__stat-label">Following</span>
+            </div>
+          </div>
+
+          <p class="public-profile__status"></p>
+
+          <div class="public-profile__posts">
+            <h3 class="public-profile__posts-title">Photos</h3>
+            <div class="public-profile__posts-grid"></div>
+            <p class="public-profile__empty" hidden>
+              This user hasn't shared any photos yet.
+            </p>
+          </div>
         </div>
       </div>
     </div>
