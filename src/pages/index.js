@@ -94,6 +94,21 @@ const loginForm = document.querySelector("#login-form");
 const registerForm = document.querySelector("#register-form");
 const loginBtn = document.querySelector(".header__login-btn");
 const logoutBtn = document.querySelector(".header__logout-btn");
+const notificationBtn = document.querySelector(".header__notification-btn");
+const notificationBadge = document.querySelector(".header__notification-badge");
+const notificationsModal = document.querySelector("#notifications-modal");
+const notificationsList = notificationsModal.querySelector(
+  ".notifications__list",
+);
+const notificationsStatus = notificationsModal.querySelector(
+  ".notifications__status",
+);
+const notificationsEmpty = notificationsModal.querySelector(
+  ".notifications__empty",
+);
+const notificationsMarkAllBtn = notificationsModal.querySelector(
+  ".notifications__mark-all-btn",
+);
 const showRegisterBtn = document.querySelector("#show-register-btn");
 const showLoginBtn = document.querySelector("#show-login-btn");
 const editProfileForm = editProfileModal.querySelector(".modal__form");
@@ -119,6 +134,330 @@ profileModal.addEventListener("modalclosed", () => {
   activePublicProfileUser = null;
   publicProfileFollowPending = false;
   publicProfileFollowBtn.hidden = true;
+});
+
+// NOTIFICATION STATE //
+
+function renderUnreadNotificationCount(count = 0) {
+  const safeCount = Math.max(0, Number(count) || 0);
+
+  notificationBadge.textContent = safeCount > 99 ? "99+" : String(safeCount);
+
+  notificationBadge.hidden = safeCount === 0;
+
+  notificationBadge.setAttribute(
+    "aria-label",
+    `${safeCount} unread ${safeCount === 1 ? "notification" : "notifications"}`,
+  );
+
+  notificationBtn.setAttribute(
+    "aria-label",
+    safeCount > 0
+      ? `Open notifications, ${safeCount} unread`
+      : "Open notifications",
+  );
+}
+
+async function refreshUnreadNotificationCount() {
+  if (!isAuthenticated) {
+    renderUnreadNotificationCount(0);
+    return;
+  }
+
+  try {
+    const unreadCount = await api.getUnreadNotificationCount();
+    renderUnreadNotificationCount(unreadCount);
+  } catch {
+    renderUnreadNotificationCount(0);
+  }
+}
+
+// NOTIFICATION INBOX //
+
+function formatNotificationTime(createdAt) {
+  const createdTime = new Date(createdAt).getTime();
+
+  if (!Number.isFinite(createdTime)) {
+    return "";
+  }
+
+  const elapsedSeconds = Math.max(
+    0,
+    Math.floor((Date.now() - createdTime) / 1000),
+  );
+
+  if (elapsedSeconds < 60) {
+    return "Just now";
+  }
+
+  const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+
+  if (elapsedMinutes < 60) {
+    return `${elapsedMinutes}m ago`;
+  }
+
+  const elapsedHours = Math.floor(elapsedMinutes / 60);
+
+  if (elapsedHours < 24) {
+    return `${elapsedHours}h ago`;
+  }
+
+  const elapsedDays = Math.floor(elapsedHours / 24);
+
+  if (elapsedDays < 7) {
+    return `${elapsedDays}d ago`;
+  }
+
+  const elapsedWeeks = Math.floor(elapsedDays / 7);
+
+  if (elapsedWeeks < 5) {
+    return `${elapsedWeeks}w ago`;
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year:
+      new Date(createdTime).getFullYear() === new Date().getFullYear()
+        ? undefined
+        : "numeric",
+  }).format(new Date(createdTime));
+}
+
+function getNotificationMessage(notification) {
+  const messages = {
+    follow_request: "requested to follow you.",
+    follow_accepted: "accepted your follow request.",
+    post_like: "liked your photo.",
+    post_comment: "commented on your photo.",
+  };
+
+  return messages[notification.type] || "interacted with your account.";
+}
+
+async function refreshOwnFollowSummary() {
+  if (!isAuthenticated) return;
+
+  try {
+    const summary = await api.getFollowSummary();
+
+    profileFollowersCountEl.textContent = summary.followersCount ?? 0;
+    profileFollowingCountEl.textContent = summary.followingCount ?? 0;
+  } catch {
+    // A failed background refresh should not interrupt the completed action.
+  }
+}
+
+function setNotificationActionLoading(actions, loading) {
+  actions.forEach((button) => {
+    button.disabled = loading;
+    button.setAttribute("aria-busy", loading ? "true" : "false");
+  });
+}
+
+function createNotificationItem(notification) {
+  const actor = notification?.actor;
+
+  if (!notification?._id || !actor?._id) {
+    return null;
+  }
+
+  const item = document.createElement("li");
+  item.className = "notification";
+
+  if (!notification.readAt) {
+    item.classList.add("notification_type_unread");
+  }
+
+  item.dataset.notificationId = notification._id;
+
+  const avatarButton = document.createElement("button");
+  avatarButton.className = "notification__avatar-btn";
+  avatarButton.type = "button";
+  avatarButton.setAttribute(
+    "aria-label",
+    `View ${actor.name || "this user"}'s profile`,
+  );
+
+  const avatar = document.createElement("img");
+  avatar.className = "notification__avatar";
+  avatar.src = actor.avatar || avatarDefault;
+  avatar.alt = `${actor.name || "Spots user"}'s profile picture`;
+
+  avatar.addEventListener("error", () => {
+    const fallbackUrl = new URL(avatarDefault, document.baseURI).href;
+
+    if (avatar.src !== fallbackUrl) {
+      avatar.src = avatarDefault;
+    }
+  });
+
+  avatarButton.append(avatar);
+
+  avatarButton.addEventListener("click", () => {
+    closeModal(notificationsModal);
+
+    window.setTimeout(() => {
+      openPublicProfile(actor._id, avatarButton);
+    }, 0);
+  });
+
+  const body = document.createElement("div");
+  body.className = "notification__body";
+
+  const message = document.createElement("p");
+  message.className = "notification__message";
+
+  const actorName = document.createElement("span");
+  actorName.className = "notification__actor";
+  actorName.textContent = actor.name || "Someone";
+
+  message.append(
+    actorName,
+    document.createTextNode(` ${getNotificationMessage(notification)}`),
+  );
+
+  if (
+    (notification.type === "post_like" ||
+      notification.type === "post_comment") &&
+    notification.post?.caption
+  ) {
+    message.append(document.createTextNode(` “${notification.post.caption}”`));
+  }
+
+  const time = document.createElement("time");
+  time.className = "notification__time";
+  time.dateTime = notification.createdAt || "";
+  time.textContent = formatNotificationTime(notification.createdAt);
+
+  body.append(message, time);
+
+  const followId = notification.follow?._id;
+  const isPendingFollowRequest =
+    notification.type === "follow_request" &&
+    followId &&
+    notification.follow?.status === "pending";
+
+  if (isPendingFollowRequest) {
+    const actions = document.createElement("div");
+    actions.className = "notification__actions";
+
+    const acceptButton = document.createElement("button");
+    acceptButton.className =
+      "notification__action-btn notification__action-btn_type_accept";
+    acceptButton.type = "button";
+    acceptButton.textContent = "Accept";
+
+    const declineButton = document.createElement("button");
+    declineButton.className =
+      "notification__action-btn notification__action-btn_type_decline";
+    declineButton.type = "button";
+    declineButton.textContent = "Decline";
+
+    const actionButtons = [acceptButton, declineButton];
+
+    acceptButton.addEventListener("click", async () => {
+      if (acceptButton.disabled) return;
+
+      setNotificationActionLoading(actionButtons, true);
+      notificationsStatus.textContent = "";
+
+      try {
+        await api.acceptFollowRequest(followId);
+        await refreshOwnFollowSummary();
+        await loadNotifications();
+        await refreshUnreadNotificationCount();
+      } catch {
+        notificationsStatus.textContent =
+          "Could not accept this follow request. Please try again.";
+        setNotificationActionLoading(actionButtons, false);
+      }
+    });
+
+    declineButton.addEventListener("click", async () => {
+      if (declineButton.disabled) return;
+
+      setNotificationActionLoading(actionButtons, true);
+      notificationsStatus.textContent = "";
+
+      try {
+        await api.rejectFollowRequest(followId);
+        await loadNotifications();
+        await refreshUnreadNotificationCount();
+      } catch {
+        notificationsStatus.textContent =
+          "Could not decline this follow request. Please try again.";
+        setNotificationActionLoading(actionButtons, false);
+      }
+    });
+
+    actions.append(acceptButton, declineButton);
+    body.append(actions);
+  }
+
+  item.append(avatarButton, body);
+
+  return item;
+}
+
+async function loadNotifications() {
+  notificationsStatus.textContent = "Loading activity…";
+  notificationsEmpty.hidden = true;
+  notificationsMarkAllBtn.hidden = true;
+  notificationsList.replaceChildren();
+
+  try {
+    const data = await api.getNotifications({
+      page: 1,
+      limit: 50,
+    });
+
+    const notifications = data.notifications || [];
+    const items = notifications.map(createNotificationItem).filter(Boolean);
+
+    notificationsStatus.textContent = "";
+
+    if (!items.length) {
+      notificationsEmpty.hidden = false;
+      return;
+    }
+
+    notificationsList.append(...items);
+
+    notificationsMarkAllBtn.hidden = !notifications.some(
+      (notification) => !notification.readAt,
+    );
+  } catch {
+    notificationsStatus.textContent =
+      "Could not load notifications. Please try again.";
+  }
+}
+
+notificationBtn.addEventListener("click", () => {
+  if (!isAuthenticated) return;
+
+  openModal(notificationsModal, notificationBtn);
+  void loadNotifications();
+});
+
+notificationsMarkAllBtn.addEventListener("click", async () => {
+  if (notificationsMarkAllBtn.disabled) return;
+
+  notificationsMarkAllBtn.disabled = true;
+  notificationsMarkAllBtn.textContent = "Marking as read…";
+  notificationsStatus.textContent = "";
+
+  try {
+    await api.markAllNotificationsRead();
+    await loadNotifications();
+    await refreshUnreadNotificationCount();
+  } catch {
+    notificationsStatus.textContent =
+      "Could not mark notifications as read. Please try again.";
+  } finally {
+    notificationsMarkAllBtn.disabled = false;
+    notificationsMarkAllBtn.textContent = "Mark all as read";
+  }
 });
 
 // PROFILE PREVIEW RETURN //
@@ -165,12 +504,9 @@ function openAvatarPreview({ image, name, opener, returnToProfile = false }) {
     ? `${name} — Profile picture`
     : "Profile picture";
 
-  window.setTimeout(
-    () => {
-      openModal(previewModal, opener);
-    },
-    returnToProfile ? 0 : 0,
-  );
+  window.setTimeout(() => {
+    openModal(previewModal, opener);
+  }, 0);
 }
 
 function handleAvatarKeydown(event, callback) {
@@ -186,9 +522,14 @@ function setAuthenticatedView(authenticated) {
   isAuthenticated = authenticated;
   loginBtn.hidden = authenticated;
   logoutBtn.hidden = !authenticated;
+  notificationBtn.hidden = !authenticated;
   editProfileBtn.hidden = !authenticated;
   newPostBtn.hidden = !authenticated;
   avatarEditBtn.hidden = !authenticated;
+
+  if (!authenticated) {
+    renderUnreadNotificationCount(0);
+  }
 }
 
 function displayUser(user) {
@@ -250,6 +591,8 @@ async function loadAuthenticatedApp() {
   displayUser(profileUser);
   renderCards(cards);
   clearRequestError();
+
+  await refreshUnreadNotificationCount();
 }
 
 async function loadGuestApp() {

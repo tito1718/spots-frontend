@@ -6,15 +6,8 @@
 
 /* HEADER ACCOUNT CONTROL */
 
-.header {
-  position: relative;
-  align-items: center;
-}
-
 .header__login-btn,
 .header__logout-btn {
-  position: absolute;
-  right: max(16px, calc((100% - 1320px) / 2));
   border: 1px solid #21212166;
   border-radius: 8px;
   padding: 8px 14px;
@@ -118,7 +111,6 @@
 @media screen and (max-width: 627px) {
   .header__login-btn,
   .header__logout-btn {
-    right: 12px;
     padding: 7px 10px;
     font-size: 12px;
   }

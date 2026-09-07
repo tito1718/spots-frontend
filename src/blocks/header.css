@@ -1,15 +1,197 @@
-/* HEADER LAYOUT */
+/* HEADER */
 
 .header {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  width: 100%;
+  min-height: 46px;
+  box-sizing: border-box;
+  padding: 10px 20px;
   background-color: #fff;
-  padding: 10px 0;
-  display: flex;
-  justify-content: center;
 }
 
-/* BRAND LOGO */
+/* LEFT BALANCE COLUMN */
+
+.header__start {
+  grid-column: 1;
+  min-width: 0;
+}
+
+/* BRAND */
 
 .header__logo {
+  grid-column: 2;
   width: 94px;
   height: 26px;
+  justify-self: center;
+}
+
+/* RIGHT-SIDE ACTION GROUP */
+
+.header__actions {
+  grid-column: 3;
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: max-content;
+}
+
+/*
+  Keep notifications immediately before the session action.
+  Log out / Log in always remains the right-most control.
+*/
+
+.header__notification-btn {
+  order: 1;
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 34px;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #212121;
+  cursor: pointer;
+  transition:
+    background-color 180ms ease,
+    transform 180ms ease,
+    opacity 180ms ease;
+}
+
+.header__login-btn,
+.header__logout-btn {
+  order: 2;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.header__notification-btn[hidden] {
+  display: none;
+}
+
+/* BELL */
+
+.header__notification-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* UNREAD BADGE */
+
+.header__notification-badge {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #ff3b30;
+  color: #fff;
+  font-size: 8px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.header__notification-badge[hidden] {
+  display: none;
+}
+
+/* INTERACTIONS */
+
+@media (hover: hover) and (pointer: fine) {
+  .header__notification-btn:hover {
+    background-color: #f3f3f3;
+    transform: translateY(-1px);
+  }
+}
+
+.header__notification-btn:active {
+  transform: translateY(0);
+}
+
+.header__notification-btn:focus-visible {
+  outline: 2px solid #212121;
+  outline-offset: 2px;
+}
+
+/* TABLET */
+
+@media screen and (max-width: 900px) {
+  .header {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .header__actions {
+    gap: 6px;
+  }
+
+  .header__notification-btn {
+    flex-basis: 32px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .header__notification-icon {
+    width: 19px;
+    height: 19px;
+  }
+}
+
+/* MOBILE */
+
+@media screen and (max-width: 627px) {
+  .header {
+    min-height: 44px;
+    padding: 8px 6px;
+  }
+
+  .header__logo {
+    width: 80px;
+    height: auto;
+  }
+
+  .header__actions {
+    gap: 3px;
+  }
+
+  .header__notification-btn {
+    flex-basis: 26px;
+    width: 26px;
+    height: 26px;
+  }
+
+  .header__notification-icon {
+    width: 17px;
+    height: 17px;
+  }
+
+  .header__notification-badge {
+    top: -2px;
+    right: -2px;
+    min-width: 13px;
+    height: 13px;
+    padding: 0 3px;
+    font-size: 7px;
+  }
 }

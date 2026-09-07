@@ -266,6 +266,81 @@ class Api {
     const data = await this._request(`/users/${userId}/posts?limit=50`);
     return (data.posts || []).map((post) => this._toCard(post));
   }
+
+  // FOLLOW REQUESTS //
+
+  async getFollowRequests() {
+    const data = await this._request("/follows/requests?limit=50");
+    return data.requests || [];
+  }
+
+  async acceptFollowRequest(followId) {
+    const data = await this._request(`/follows/requests/${followId}/accept`, {
+      method: "POST",
+    });
+
+    return data.follow;
+  }
+
+  rejectFollowRequest(followId) {
+    return this._request(`/follows/requests/${followId}`, {
+      method: "DELETE",
+    });
+  }
+
+  removeFollower(userId) {
+    return this._request(`/follows/followers/${userId}`, {
+      method: "DELETE",
+    });
+  }
+
+  async getFollowSummary() {
+    return this._request("/follows/summary");
+  }
+
+  // NOTIFICATION REQUESTS //
+
+  async getNotifications({ page = 1, limit = 50, unreadOnly = false } = {}) {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+      unreadOnly: String(unreadOnly),
+    });
+
+    const data = await this._request(`/notifications?${params.toString()}`);
+    return data;
+  }
+
+  async getUnreadNotificationCount() {
+    const data = await this._request("/notifications/unread-count");
+    return data.unreadCount ?? 0;
+  }
+
+  async markNotificationRead(notificationId) {
+    const data = await this._request(`/notifications/${notificationId}/read`, {
+      method: "PATCH",
+    });
+
+    return data.notification;
+  }
+
+  async markAllNotificationsRead() {
+    return this._request("/notifications/read-all", {
+      method: "PATCH",
+    });
+  }
+
+  deleteNotification(notificationId) {
+    return this._request(`/notifications/${notificationId}`, {
+      method: "DELETE",
+    });
+  }
+
+  clearNotifications() {
+    return this._request("/notifications", {
+      method: "DELETE",
+    });
+  }
 }
 
 // EXPORT //

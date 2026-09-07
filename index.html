@@ -17,9 +17,41 @@
   <body>
     <div class="page">
       <header class="header">
+        <div class="header__start" aria-hidden="true"></div>
+
         <img src="" alt="Spots logo" class="header__logo" />
-        <button type="button" class="header__login-btn">Log in</button>
-        <button type="button" class="header__logout-btn" hidden>Log out</button>
+
+        <div class="header__actions">
+          <button
+            type="button"
+            class="header__notification-btn"
+            aria-label="Open notifications"
+            aria-haspopup="dialog"
+            hidden
+          >
+            <svg
+              class="header__notification-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"></path>
+              <path d="M10 21h4"></path>
+            </svg>
+
+            <span
+              class="header__notification-badge"
+              aria-label="0 unread notifications"
+              hidden
+            >
+              0
+            </span>
+          </button>
+
+          <button type="button" class="header__login-btn">Log in</button>
+          <button type="button" class="header__logout-btn" hidden>
+            Log out
+          </button>
+        </div>
       </header>
 
       <main class="content">
@@ -204,6 +236,40 @@
             </label>
             <button type="submit" class="modal__submit-btn">Save</button>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="notifications-modal">
+      <div class="modal__container modal__container_type_notifications">
+        <button
+          type="button"
+          class="modal__close-btn"
+          aria-label="Close notifications"
+        ></button>
+
+        <div class="notifications">
+          <div class="notifications__header">
+            <div>
+              <p class="notifications__eyebrow">Activity</p>
+              <h2 class="modal__title notifications__title">Notifications</h2>
+            </div>
+
+            <button type="button" class="notifications__mark-all-btn" hidden>
+              Mark all as read
+            </button>
+          </div>
+
+          <p class="notifications__status" aria-live="polite"></p>
+
+          <ul class="notifications__list"></ul>
+
+          <div class="notifications__empty" hidden>
+            <p class="notifications__empty-title">You’re all caught up</p>
+            <p class="notifications__empty-text">
+              New follows, likes, and comments will appear here.
+            </p>
+          </div>
         </div>
       </div>
     </div>
