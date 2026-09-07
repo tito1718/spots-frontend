@@ -484,3 +484,43 @@
     gap: 4px;
   }
 }
+
+/* PUBLIC PROFILE AVATAR PREVIEW */
+
+.public-profile__avatar[role="button"] {
+  cursor: pointer;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .public-profile__avatar[role="button"]:hover {
+    opacity: 0.88;
+    transform: scale(1.04);
+  }
+}
+
+.public-profile__avatar[role="button"]:focus-visible {
+  outline: 2px solid #212121;
+  outline-offset: 4px;
+}
+
+/* LARGE AVATAR IMAGE PREVIEW */
+
+.modal__image_type_avatar {
+  width: min(70vw, 560px);
+  height: min(70vw, 560px);
+  max-width: calc(100vw - 40px);
+  max-height: calc(100vh - 120px);
+  max-height: calc(100dvh - 120px);
+  background-color: #fff;
+  object-fit: contain;
+}
+
+@media screen and (max-width: 627px) {
+  .modal__image_type_avatar {
+    width: min(calc(100vw - 32px), 440px);
+    height: min(calc(100vw - 32px), 440px);
+  }
+}

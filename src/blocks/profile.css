@@ -254,3 +254,24 @@
 }
 
 /* Shared motion, focus, and reduced-motion rules live in refinements.css. */
+
+/* PROFILE AVATAR PREVIEW */
+
+.profile__avatar_type_preview {
+  cursor: pointer;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .profile__avatar_type_preview:hover {
+    opacity: 0.88;
+    transform: scale(1.04);
+  }
+}
+
+.profile__avatar_type_preview:focus-visible {
+  outline: 2px solid #212121;
+  outline-offset: 4px;
+}

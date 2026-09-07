@@ -55,6 +55,9 @@ const previewModal = document.querySelector("#preview-modal");
 const avatarModal = document.querySelector("#edit-avatar-modal");
 const deleteModal = document.querySelector("#delete-modal");
 const profileModal = document.querySelector("#profile-modal");
+const publicProfileAvatarImg = profileModal.querySelector(
+  ".public-profile__avatar",
+);
 const loginModal = document.querySelector("#login-modal");
 const registerModal = document.querySelector("#register-modal");
 const loginForm = document.querySelector("#login-form");
@@ -83,6 +86,8 @@ const cardsList = document.querySelector(".cards__list");
 // PROFILE PREVIEW RETURN //
 
 previewModal.addEventListener("modalclosed", () => {
+  previewImageEl.classList.remove("modal__image_type_avatar");
+
   if (!returnToProfileAfterPreview) return;
 
   returnToProfileAfterPreview = false;
@@ -102,6 +107,41 @@ document.querySelectorAll(".modal").forEach((modal) => {
   });
 });
 
+// AVATAR PREVIEW //
+
+function openAvatarPreview({ image, name, opener, returnToProfile = false }) {
+  if (!image?.src) return;
+
+  if (returnToProfile) {
+    returnToProfileAfterPreview = true;
+    closeModal(profileModal);
+  }
+
+  previewImageEl.src = image.src;
+  previewImageEl.alt = name
+    ? `Profile picture for ${name}`
+    : "Spots user profile picture";
+  previewImageEl.classList.add("modal__image_type_avatar");
+
+  captionEl.textContent = name
+    ? `${name} — Profile picture`
+    : "Profile picture";
+
+  window.setTimeout(
+    () => {
+      openModal(previewModal, opener);
+    },
+    returnToProfile ? 0 : 0,
+  );
+}
+
+function handleAvatarKeydown(event, callback) {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    callback();
+  }
+}
+
 // AUTHENTICATION VIEW //
 
 function setAuthenticatedView(authenticated) {
@@ -118,7 +158,14 @@ function displayUser(user) {
   profileNameEl.textContent = user.name;
   profileDescriptionEl.textContent = user.about || "Sharing memorable places.";
   profileAvatarImg.classList.remove("profile__avatar_type_guest");
+  profileAvatarImg.classList.add("profile__avatar_type_preview");
   profileAvatarImg.src = user.avatar || avatarDefault;
+  profileAvatarImg.tabIndex = 0;
+  profileAvatarImg.setAttribute("role", "button");
+  profileAvatarImg.setAttribute(
+    "aria-label",
+    `View ${user.name || "Spots user"}'s profile picture`,
+  );
 }
 
 function displayGuestProfile() {
@@ -127,7 +174,11 @@ function displayGuestProfile() {
   profileDescriptionEl.textContent =
     "Log in to share, like, and manage your favorite places.";
   profileAvatarImg.classList.add("profile__avatar_type_guest");
+  profileAvatarImg.classList.remove("profile__avatar_type_preview");
   profileAvatarImg.src = spotsMark;
+  profileAvatarImg.removeAttribute("role");
+  profileAvatarImg.removeAttribute("aria-label");
+  profileAvatarImg.removeAttribute("tabindex");
 }
 
 function renderCards(cards) {
@@ -162,6 +213,26 @@ async function loadGuestApp() {
     showRequestError("Could not load public photos. Please try again shortly.");
   }
 }
+
+// MAIN PROFILE AVATAR PREVIEW //
+
+function openCurrentUserAvatarPreview() {
+  if (!isAuthenticated) return;
+
+  openAvatarPreview({
+    image: profileAvatarImg,
+    name: profileNameEl.textContent,
+    opener: profileAvatarImg,
+  });
+}
+
+profileAvatarImg.addEventListener("click", openCurrentUserAvatarPreview);
+
+profileAvatarImg.addEventListener("keydown", (event) => {
+  if (!isAuthenticated) return;
+
+  handleAvatarKeydown(event, openCurrentUserAvatarPreview);
+});
 
 // PUBLIC PROFILE //
 
@@ -210,6 +281,29 @@ function createProfilePostElement(card) {
   return button;
 }
 
+function openPublicProfileAvatarPreview() {
+  const name = profileModal.querySelector(".public-profile__name").textContent;
+
+  openAvatarPreview({
+    image: publicProfileAvatarImg,
+    name,
+    opener: publicProfileAvatarImg,
+    returnToProfile: true,
+  });
+}
+
+publicProfileAvatarImg.tabIndex = 0;
+publicProfileAvatarImg.setAttribute("role", "button");
+
+publicProfileAvatarImg.addEventListener(
+  "click",
+  openPublicProfileAvatarPreview,
+);
+
+publicProfileAvatarImg.addEventListener("keydown", (event) => {
+  handleAvatarKeydown(event, openPublicProfileAvatarPreview);
+});
+
 async function openPublicProfile(userId, opener) {
   if (!userId) return;
 
@@ -244,6 +338,10 @@ async function openPublicProfile(userId, opener) {
     avatar.alt = user.name
       ? `${user.name}'s profile picture`
       : "Spots user profile picture";
+    avatar.setAttribute(
+      "aria-label",
+      `View ${user.name || "Spots user"}'s profile picture`,
+    );
 
     avatar.onerror = () => {
       const fallbackUrl = new URL(avatarDefault, document.baseURI).href;
