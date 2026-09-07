@@ -40,6 +40,46 @@
             <p class="profile__description">
               Log in to share, like, and manage your favorite places.
             </p>
+
+            <div class="profile__stats" hidden>
+              <div class="profile__stat">
+                <strong
+                  class="profile__stat-value"
+                  data-main-profile-stat="posts"
+                >
+                  0
+                </strong>
+                <span class="profile__stat-label">Posts</span>
+              </div>
+
+              <button
+                type="button"
+                class="profile__stat profile__stat_type_action"
+                data-social-list="followers"
+              >
+                <strong
+                  class="profile__stat-value"
+                  data-main-profile-stat="followers"
+                >
+                  0
+                </strong>
+                <span class="profile__stat-label">Followers</span>
+              </button>
+
+              <button
+                type="button"
+                class="profile__stat profile__stat_type_action"
+                data-social-list="following"
+              >
+                <strong
+                  class="profile__stat-value"
+                  data-main-profile-stat="following"
+                >
+                  0
+                </strong>
+                <span class="profile__stat-label">Following</span>
+              </button>
+            </div>
             <button type="button" class="profile__edit-btn" hidden>
               <img src="" alt="Edit profile icon" /> Edit Profile
             </button>
@@ -168,6 +208,29 @@
       </div>
     </div>
 
+    <div class="modal" id="social-list-modal">
+      <div class="modal__container modal__container_type_social-list">
+        <button
+          type="button"
+          class="modal__close-btn"
+          aria-label="Close social list"
+        ></button>
+
+        <div class="social-list__header">
+          <h2 class="modal__title social-list__title">
+            <span class="social-list__title-text">Following</span>
+            <span class="social-list__count" aria-label="0 accounts">0</span>
+          </h2>
+        </div>
+
+        <p class="social-list__status" aria-live="polite"></p>
+
+        <ul class="social-list__items"></ul>
+
+        <p class="social-list__empty" hidden></p>
+      </div>
+    </div>
+
     <div class="modal" id="profile-modal">
       <div class="modal__container modal__container_type_profile">
         <button
@@ -214,6 +277,12 @@
               </strong>
               <span class="public-profile__stat-label">Following</span>
             </div>
+          </div>
+
+          <div class="public-profile__actions">
+            <button type="button" class="public-profile__follow-btn" hidden>
+              Follow
+            </button>
           </div>
 
           <p class="public-profile__status"></p>

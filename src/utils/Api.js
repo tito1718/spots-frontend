@@ -238,6 +238,30 @@ class Api {
     return data.user;
   }
 
+  async getFollowers() {
+    const data = await this._request("/follows/followers?limit=50");
+    return data.followers || data.users || [];
+  }
+
+  async getFollowing() {
+    const data = await this._request("/follows/following?limit=50");
+    return data.following || data.users || [];
+  }
+
+  async followUser(userId) {
+    const data = await this._request(`/follows/users/${userId}`, {
+      method: "POST",
+    });
+
+    return data.follow;
+  }
+
+  unfollowUser(userId) {
+    return this._request(`/follows/users/${userId}`, {
+      method: "DELETE",
+    });
+  }
+
   async getUserPosts(userId) {
     const data = await this._request(`/users/${userId}/posts?limit=50`);
     return (data.posts || []).map((post) => this._toCard(post));

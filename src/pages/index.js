@@ -33,12 +33,39 @@ let isDeleting = false;
 let isAuthenticated = false;
 let returnToProfileAfterPreview = false;
 let publicProfileOpener = null;
+let activePublicProfileUser = null;
+let publicProfileFollowPending = false;
 
 // DOM REFERENCES AND AVATAR FALLBACK //
 
 const profileNameEl = document.querySelector(".profile__name");
 const profileDescriptionEl = document.querySelector(".profile__description");
 const profileAvatarImg = document.querySelector(".profile__avatar");
+const profileStatsEl = document.querySelector(".profile__stats");
+const profilePostsCountEl = profileStatsEl.querySelector(
+  '[data-main-profile-stat="posts"]',
+);
+const profileFollowersCountEl = profileStatsEl.querySelector(
+  '[data-main-profile-stat="followers"]',
+);
+const profileFollowingCountEl = profileStatsEl.querySelector(
+  '[data-main-profile-stat="following"]',
+);
+const profileFollowersBtn = profileStatsEl.querySelector(
+  '[data-social-list="followers"]',
+);
+const profileFollowingBtn = profileStatsEl.querySelector(
+  '[data-social-list="following"]',
+);
+
+const socialListModal = document.querySelector("#social-list-modal");
+const socialListTitle = socialListModal.querySelector(
+  ".social-list__title-text",
+);
+const socialListCount = socialListModal.querySelector(".social-list__count");
+const socialListStatus = socialListModal.querySelector(".social-list__status");
+const socialListItems = socialListModal.querySelector(".social-list__items");
+const socialListEmpty = socialListModal.querySelector(".social-list__empty");
 
 profileAvatarImg.addEventListener("error", () => {
   const fallbackUrl = new URL(avatarDefault, document.baseURI).href;
@@ -57,6 +84,9 @@ const deleteModal = document.querySelector("#delete-modal");
 const profileModal = document.querySelector("#profile-modal");
 const publicProfileAvatarImg = profileModal.querySelector(
   ".public-profile__avatar",
+);
+const publicProfileFollowBtn = profileModal.querySelector(
+  ".public-profile__follow-btn",
 );
 const loginModal = document.querySelector("#login-modal");
 const registerModal = document.querySelector("#register-modal");
@@ -82,6 +112,14 @@ const cardTemplate = document
   .querySelector("#card-template")
   .content.querySelector(".card");
 const cardsList = document.querySelector(".cards__list");
+
+profileModal.addEventListener("modalclosed", () => {
+  if (returnToProfileAfterPreview) return;
+
+  activePublicProfileUser = null;
+  publicProfileFollowPending = false;
+  publicProfileFollowBtn.hidden = true;
+});
 
 // PROFILE PREVIEW RETURN //
 
@@ -157,6 +195,12 @@ function displayUser(user) {
   currentUserId = user._id;
   profileNameEl.textContent = user.name;
   profileDescriptionEl.textContent = user.about || "Sharing memorable places.";
+
+  profilePostsCountEl.textContent = user.postsCount ?? 0;
+  profileFollowersCountEl.textContent = user.followersCount ?? 0;
+  profileFollowingCountEl.textContent = user.followingCount ?? 0;
+  profileStatsEl.hidden = false;
+
   profileAvatarImg.classList.remove("profile__avatar_type_guest");
   profileAvatarImg.classList.add("profile__avatar_type_preview");
   profileAvatarImg.src = user.avatar || avatarDefault;
@@ -173,6 +217,11 @@ function displayGuestProfile() {
   profileNameEl.textContent = "Welcome to Spots";
   profileDescriptionEl.textContent =
     "Log in to share, like, and manage your favorite places.";
+
+  profileStatsEl.hidden = true;
+  profilePostsCountEl.textContent = "0";
+  profileFollowersCountEl.textContent = "0";
+  profileFollowingCountEl.textContent = "0";
   profileAvatarImg.classList.add("profile__avatar_type_guest");
   profileAvatarImg.classList.remove("profile__avatar_type_preview");
   profileAvatarImg.src = spotsMark;
@@ -195,8 +244,10 @@ function openAuthModal(modal) {
 
 async function loadAuthenticatedApp() {
   const [cards, user] = await api.getAppInfo();
+  const profileUser = await api.getUserProfile(user._id);
+
   setAuthenticatedView(true);
-  displayUser(user);
+  displayUser(profileUser);
   renderCards(cards);
   clearRequestError();
 }
@@ -213,6 +264,114 @@ async function loadGuestApp() {
     showRequestError("Could not load public photos. Please try again shortly.");
   }
 }
+
+function createSocialListItem(entry) {
+  const user = entry?.user;
+
+  if (!user?._id) {
+    return null;
+  }
+
+  const item = document.createElement("li");
+  item.className = "social-list__item";
+
+  const button = document.createElement("button");
+  button.className = "social-list__user";
+  button.type = "button";
+  button.setAttribute("aria-label", `View ${user.name}'s profile`);
+
+  const avatar = document.createElement("img");
+  avatar.className = "social-list__avatar";
+  avatar.src = user.avatar || avatarDefault;
+  avatar.alt = `${user.name}'s profile picture`;
+
+  avatar.addEventListener("error", () => {
+    const fallbackUrl = new URL(avatarDefault, document.baseURI).href;
+
+    if (avatar.src !== fallbackUrl) {
+      avatar.src = avatarDefault;
+    }
+  });
+
+  const details = document.createElement("span");
+  details.className = "social-list__details";
+
+  const name = document.createElement("strong");
+  name.className = "social-list__name";
+  name.textContent = user.name;
+
+  const about = document.createElement("span");
+  about.className = "social-list__about";
+  about.textContent = user.about || "Explorer";
+
+  details.append(name, about);
+  button.append(avatar, details);
+  item.append(button);
+
+  button.addEventListener("click", () => {
+    closeModal(socialListModal);
+    openPublicProfile(user._id, button);
+  });
+
+  return item;
+}
+
+async function handleSocialListClick(type, opener) {
+  if (!isAuthenticated) return;
+
+  clearRequestError();
+
+  const isFollowers = type === "followers";
+  const title = isFollowers ? "Followers" : "Following";
+
+  socialListTitle.textContent = title;
+  socialListCount.textContent = "0";
+  socialListCount.setAttribute("aria-label", "0 accounts");
+  socialListStatus.textContent = "Loading…";
+  socialListEmpty.hidden = true;
+  socialListEmpty.textContent = "";
+  socialListItems.replaceChildren();
+
+  openModal(socialListModal, opener);
+
+  try {
+    const entries = isFollowers
+      ? await api.getFollowers()
+      : await api.getFollowing();
+
+    const items = entries.map(createSocialListItem).filter(Boolean);
+
+    socialListStatus.textContent = "";
+
+    socialListCount.textContent = String(items.length);
+    socialListCount.setAttribute(
+      "aria-label",
+      `${items.length} ${items.length === 1 ? "account" : "accounts"}`,
+    );
+
+    if (!items.length) {
+      socialListEmpty.textContent = isFollowers
+        ? "No followers yet. When someone follows you, they'll appear here."
+        : "Not following anyone yet. Accounts you follow will appear here.";
+      socialListEmpty.hidden = false;
+      return;
+    }
+
+    socialListItems.append(...items);
+  } catch {
+    socialListStatus.textContent = "";
+    socialListEmpty.textContent = `Could not load ${type}. Please try again.`;
+    socialListEmpty.hidden = false;
+  }
+}
+
+profileFollowersBtn.addEventListener("click", () => {
+  handleSocialListClick("followers", profileFollowersBtn);
+});
+
+profileFollowingBtn.addEventListener("click", () => {
+  handleSocialListClick("following", profileFollowingBtn);
+});
 
 // MAIN PROFILE AVATAR PREVIEW //
 
@@ -235,6 +394,41 @@ profileAvatarImg.addEventListener("keydown", (event) => {
 });
 
 // PUBLIC PROFILE //
+
+function updatePublicProfileFollowButton(user) {
+  publicProfileFollowBtn.classList.remove(
+    "public-profile__follow-btn_type_following",
+    "public-profile__follow-btn_type_pending",
+  );
+
+  if (!isAuthenticated || !user || user.relationshipStatus === "self") {
+    publicProfileFollowBtn.hidden = true;
+    publicProfileFollowBtn.disabled = false;
+    return;
+  }
+
+  publicProfileFollowBtn.hidden = false;
+
+  if (user.relationshipStatus === "following") {
+    publicProfileFollowBtn.textContent = "Following";
+    publicProfileFollowBtn.classList.add(
+      "public-profile__follow-btn_type_following",
+    );
+  } else if (user.relationshipStatus === "pending") {
+    publicProfileFollowBtn.textContent = "Pending";
+    publicProfileFollowBtn.classList.add(
+      "public-profile__follow-btn_type_pending",
+    );
+  } else {
+    publicProfileFollowBtn.textContent = "Follow";
+  }
+
+  publicProfileFollowBtn.disabled = publicProfileFollowPending;
+  publicProfileFollowBtn.setAttribute(
+    "aria-busy",
+    publicProfileFollowPending ? "true" : "false",
+  );
+}
 
 function getRelationshipLabel(status) {
   const labels = {
@@ -304,6 +498,76 @@ publicProfileAvatarImg.addEventListener("keydown", (event) => {
   handleAvatarKeydown(event, openPublicProfileAvatarPreview);
 });
 
+publicProfileFollowBtn.addEventListener("click", async () => {
+  if (
+    !isAuthenticated ||
+    !activePublicProfileUser ||
+    publicProfileFollowPending ||
+    activePublicProfileUser.relationshipStatus === "self"
+  ) {
+    return;
+  }
+
+  clearRequestError();
+  publicProfileFollowPending = true;
+  updatePublicProfileFollowButton(activePublicProfileUser);
+
+  try {
+    const previousStatus = activePublicProfileUser.relationshipStatus;
+    const followersCountEl = profileModal.querySelector(
+      '[data-profile-stat="followers"]',
+    );
+
+    if (previousStatus === "following" || previousStatus === "pending") {
+      await api.unfollowUser(activePublicProfileUser._id);
+
+      if (previousStatus === "following") {
+        activePublicProfileUser.followersCount = Math.max(
+          0,
+          (activePublicProfileUser.followersCount ?? 0) - 1,
+        );
+      }
+
+      activePublicProfileUser.relationshipStatus = "none";
+
+      if (previousStatus === "following") {
+        profileFollowingCountEl.textContent = Math.max(
+          0,
+          Number(profileFollowingCountEl.textContent || 0) - 1,
+        );
+      }
+    } else {
+      const follow = await api.followUser(activePublicProfileUser._id);
+      const nextStatus =
+        follow?.status === "accepted" ? "following" : "pending";
+
+      if (nextStatus === "following") {
+        activePublicProfileUser.followersCount =
+          (activePublicProfileUser.followersCount ?? 0) + 1;
+
+        profileFollowingCountEl.textContent =
+          Number(profileFollowingCountEl.textContent || 0) + 1;
+      }
+
+      activePublicProfileUser.relationshipStatus = nextStatus;
+    }
+
+    followersCountEl.textContent = activePublicProfileUser.followersCount ?? 0;
+
+    const status = profileModal.querySelector(".public-profile__status");
+    status.textContent = getRelationshipLabel(
+      activePublicProfileUser.relationshipStatus,
+    );
+  } catch {
+    showRequestError(
+      "Could not update this follow relationship. Please try again.",
+    );
+  } finally {
+    publicProfileFollowPending = false;
+    updatePublicProfileFollowButton(activePublicProfileUser);
+  }
+});
+
 async function openPublicProfile(userId, opener) {
   if (!userId) return;
 
@@ -314,6 +578,8 @@ async function openPublicProfile(userId, opener) {
       api.getUserProfile(userId),
       api.getUserPosts(userId),
     ]);
+
+    activePublicProfileUser = user;
 
     const avatar = profileModal.querySelector(".public-profile__avatar");
     const name = profileModal.querySelector(".public-profile__name");
@@ -355,6 +621,7 @@ async function openPublicProfile(userId, opener) {
     followersCount.textContent = user.followersCount ?? 0;
     followingCount.textContent = user.followingCount ?? 0;
     status.textContent = getRelationshipLabel(user.relationshipStatus);
+    updatePublicProfileFollowButton(user);
 
     postsGrid.replaceChildren(
       ...posts.map((post) => createProfilePostElement(post)),
