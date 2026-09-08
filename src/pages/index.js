@@ -21,6 +21,7 @@ import Notifications from "../components/Notifications.js";
 import SocialList from "../components/SocialList.js";
 import PublicProfile from "../components/PublicProfile.js";
 import Card from "../components/Card.js";
+import MainProfile from "../components/MainProfile.js";
 import { openModal, closeModal, setLoadingState } from "../utils/helpers.js";
 
 // API CONFIGURATION //
@@ -68,12 +69,6 @@ const socialListStatus = socialListModal.querySelector(".social-list__status");
 const socialListItems = socialListModal.querySelector(".social-list__items");
 const socialListEmpty = socialListModal.querySelector(".social-list__empty");
 
-profileAvatarImg.addEventListener("error", () => {
-  const fallbackUrl = new URL(avatarDefault, document.baseURI).href;
-  if (profileAvatarImg.src !== fallbackUrl) {
-    profileAvatarImg.src = avatarDefault;
-  }
-});
 const editProfileBtn = document.querySelector(".profile__edit-btn");
 const newPostBtn = document.querySelector(".profile__add-btn");
 const avatarEditBtn = document.querySelector(".profile__avatar-btn");
@@ -131,19 +126,6 @@ const cardsList = document.querySelector(".cards__list");
 
 // NOTIFICATIONS //
 
-async function refreshOwnFollowSummary() {
-  if (!isAuthenticated) return;
-
-  try {
-    const summary = await api.getFollowSummary();
-
-    profileFollowersCountEl.textContent = summary.followersCount ?? 0;
-    profileFollowingCountEl.textContent = summary.followingCount ?? 0;
-  } catch {
-    // A failed background refresh should not interrupt the completed action.
-  }
-}
-
 const notifications = new Notifications({
   api,
   modal: notificationsModal,
@@ -157,7 +139,7 @@ const notifications = new Notifications({
   openModal,
   closeModal,
   openPublicProfile,
-  refreshFollowSummary: refreshOwnFollowSummary,
+  refreshFollowSummary: () => mainProfile.refreshFollowSummary(),
   isAuthenticated: () => isAuthenticated,
 });
 
@@ -177,13 +159,6 @@ const socialList = new SocialList({
   openPublicProfile,
   isAuthenticated: () => isAuthenticated,
 });
-
-function updateOwnFollowingCount(change) {
-  profileFollowingCountEl.textContent = Math.max(
-    0,
-    Number(profileFollowingCountEl.textContent || 0) + change,
-  );
-}
 
 function openPublicProfilePostPreview(card, opener) {
   returnToProfileAfterPreview = true;
@@ -209,7 +184,7 @@ const publicProfile = new PublicProfile({
   clearRequestError,
   showRequestError,
   isAuthenticated: () => isAuthenticated,
-  updateOwnFollowingCount,
+  updateOwnFollowingCount: (change) => mainProfile.updateFollowingCount(change),
 });
 
 publicProfile.setEventListeners();
@@ -267,13 +242,6 @@ function openAvatarPreview({ image, name, opener, returnToProfile = false }) {
   }, 0);
 }
 
-function handleAvatarKeydown(event, callback) {
-  if (event.key === "Enter" || event.key === " ") {
-    event.preventDefault();
-    callback();
-  }
-}
-
 // AUTHENTICATION VIEW //
 
 function setAuthenticatedView(authenticated) {
@@ -281,9 +249,7 @@ function setAuthenticatedView(authenticated) {
   loginBtn.hidden = authenticated;
   logoutBtn.hidden = !authenticated;
   notificationBtn.hidden = !authenticated;
-  editProfileBtn.hidden = !authenticated;
-  newPostBtn.hidden = !authenticated;
-  avatarEditBtn.hidden = !authenticated;
+  mainProfile.setAuthenticatedView(authenticated);
 
   if (!authenticated) {
     notifications.renderUnreadCount(0);
@@ -291,42 +257,11 @@ function setAuthenticatedView(authenticated) {
 }
 
 function displayUser(user) {
-  currentUserId = user._id;
-  profileNameEl.textContent = user.name;
-  profileDescriptionEl.textContent = user.about || "Sharing memorable places.";
-
-  profilePostsCountEl.textContent = user.postsCount ?? 0;
-  profileFollowersCountEl.textContent = user.followersCount ?? 0;
-  profileFollowingCountEl.textContent = user.followingCount ?? 0;
-  profileStatsEl.hidden = false;
-
-  profileAvatarImg.classList.remove("profile__avatar_type_guest");
-  profileAvatarImg.classList.add("profile__avatar_type_preview");
-  profileAvatarImg.src = user.avatar || avatarDefault;
-  profileAvatarImg.tabIndex = 0;
-  profileAvatarImg.setAttribute("role", "button");
-  profileAvatarImg.setAttribute(
-    "aria-label",
-    `View ${user.name || "Spots user"}'s profile picture`,
-  );
+  mainProfile.displayUser(user);
 }
 
 function displayGuestProfile() {
-  currentUserId = null;
-  profileNameEl.textContent = "Welcome to Spots";
-  profileDescriptionEl.textContent =
-    "Log in to share, like, and manage your favorite places.";
-
-  profileStatsEl.hidden = true;
-  profilePostsCountEl.textContent = "0";
-  profileFollowersCountEl.textContent = "0";
-  profileFollowingCountEl.textContent = "0";
-  profileAvatarImg.classList.add("profile__avatar_type_guest");
-  profileAvatarImg.classList.remove("profile__avatar_type_preview");
-  profileAvatarImg.src = spotsMark;
-  profileAvatarImg.removeAttribute("role");
-  profileAvatarImg.removeAttribute("aria-label");
-  profileAvatarImg.removeAttribute("tabindex");
+  mainProfile.displayGuest();
 }
 
 function renderCards(cards) {
@@ -366,33 +301,35 @@ async function loadGuestApp() {
   }
 }
 
-profileFollowersBtn.addEventListener("click", () => {
-  void socialList.open("followers", profileFollowersBtn);
+// MAIN PROFILE //
+
+const mainProfile = new MainProfile({
+  api,
+  name: profileNameEl,
+  description: profileDescriptionEl,
+  avatar: profileAvatarImg,
+  stats: profileStatsEl,
+  postsCount: profilePostsCountEl,
+  followersCount: profileFollowersCountEl,
+  followingCount: profileFollowingCountEl,
+  followersButton: profileFollowersBtn,
+  followingButton: profileFollowingBtn,
+  editButton: editProfileBtn,
+  addButton: newPostBtn,
+  avatarEditButton: avatarEditBtn,
+  avatarFallback: avatarDefault,
+  guestAvatar: spotsMark,
+  openAvatarPreview,
+  openSocialList: (type, opener) => {
+    void socialList.open(type, opener);
+  },
+  isAuthenticated: () => isAuthenticated,
+  setCurrentUserId: (userId) => {
+    currentUserId = userId;
+  },
 });
 
-profileFollowingBtn.addEventListener("click", () => {
-  void socialList.open("following", profileFollowingBtn);
-});
-
-// MAIN PROFILE AVATAR PREVIEW //
-
-function openCurrentUserAvatarPreview() {
-  if (!isAuthenticated) return;
-
-  openAvatarPreview({
-    image: profileAvatarImg,
-    name: profileNameEl.textContent,
-    opener: profileAvatarImg,
-  });
-}
-
-profileAvatarImg.addEventListener("click", openCurrentUserAvatarPreview);
-
-profileAvatarImg.addEventListener("keydown", (event) => {
-  if (!isAuthenticated) return;
-
-  handleAvatarKeydown(event, openCurrentUserAvatarPreview);
-});
+mainProfile.setEventListeners();
 
 // CARD CREATION //
 
@@ -636,8 +573,7 @@ editProfileForm.addEventListener("submit", (evt) => {
       about: editProfileForm.querySelector("#profile_description-input").value,
     })
     .then((data) => {
-      profileNameEl.textContent = data.name;
-      profileDescriptionEl.textContent = data.about;
+      mainProfile.updateProfileInfo(data);
       closeModal(editProfileModal);
     })
     .catch(() => {
@@ -693,7 +629,7 @@ avatarForm.addEventListener("submit", (evt) => {
       avatar: avatarForm.querySelector("#profile-avatar-input").value,
     })
     .then((data) => {
-      profileAvatarImg.src = data.avatar;
+      mainProfile.updateAvatar(data.avatar);
       avatarForm.reset();
       closeModal(avatarModal);
     })
