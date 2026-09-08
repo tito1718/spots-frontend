@@ -19,6 +19,7 @@ import penWhiteIcon from "../images/spots-images/edit-light.svg";
 import Api from "../utils/Api.js";
 import Notifications from "../components/Notifications.js";
 import SocialList from "../components/SocialList.js";
+import PublicProfile from "../components/PublicProfile.js";
 import { openModal, closeModal, setLoadingState } from "../utils/helpers.js";
 
 // API CONFIGURATION //
@@ -34,9 +35,6 @@ let cardToDelete = null;
 let isDeleting = false;
 let isAuthenticated = false;
 let returnToProfileAfterPreview = false;
-let publicProfileOpener = null;
-let activePublicProfileUser = null;
-let publicProfileFollowPending = false;
 
 // DOM REFERENCES AND AVATAR FALLBACK //
 
@@ -130,14 +128,6 @@ const cardTemplate = document
   .content.querySelector(".card");
 const cardsList = document.querySelector(".cards__list");
 
-profileModal.addEventListener("modalclosed", () => {
-  if (returnToProfileAfterPreview) return;
-
-  activePublicProfileUser = null;
-  publicProfileFollowPending = false;
-  publicProfileFollowBtn.hidden = true;
-});
-
 // NOTIFICATIONS //
 
 async function refreshOwnFollowSummary() {
@@ -187,6 +177,46 @@ const socialList = new SocialList({
   isAuthenticated: () => isAuthenticated,
 });
 
+function updateOwnFollowingCount(change) {
+  profileFollowingCountEl.textContent = Math.max(
+    0,
+    Number(profileFollowingCountEl.textContent || 0) + change,
+  );
+}
+
+function openPublicProfilePostPreview(card, opener) {
+  returnToProfileAfterPreview = true;
+  closeModal(profileModal);
+
+  window.setTimeout(() => {
+    previewImageEl.src = card.link;
+    previewImageEl.alt = card.name;
+    captionEl.textContent = card.name;
+    openModal(previewModal, opener);
+  }, 0);
+}
+
+const publicProfile = new PublicProfile({
+  api,
+  modal: profileModal,
+  avatar: publicProfileAvatarImg,
+  followButton: publicProfileFollowBtn,
+  avatarFallback: avatarDefault,
+  openModal,
+  openAvatarPreview,
+  openPostPreview: openPublicProfilePostPreview,
+  clearRequestError,
+  showRequestError,
+  isAuthenticated: () => isAuthenticated,
+  updateOwnFollowingCount,
+});
+
+publicProfile.setEventListeners();
+
+async function openPublicProfile(userId, opener) {
+  await publicProfile.open(userId, opener);
+}
+
 // PROFILE PREVIEW RETURN //
 
 previewModal.addEventListener("modalclosed", () => {
@@ -197,7 +227,7 @@ previewModal.addEventListener("modalclosed", () => {
   returnToProfileAfterPreview = false;
 
   window.setTimeout(() => {
-    openModal(profileModal, publicProfileOpener);
+    publicProfile.reopen();
   }, 0);
 });
 
@@ -362,249 +392,6 @@ profileAvatarImg.addEventListener("keydown", (event) => {
 
   handleAvatarKeydown(event, openCurrentUserAvatarPreview);
 });
-
-// PUBLIC PROFILE //
-
-function updatePublicProfileFollowButton(user) {
-  publicProfileFollowBtn.classList.remove(
-    "public-profile__follow-btn_type_following",
-    "public-profile__follow-btn_type_pending",
-  );
-
-  if (!isAuthenticated || !user || user.relationshipStatus === "self") {
-    publicProfileFollowBtn.hidden = true;
-    publicProfileFollowBtn.disabled = false;
-    return;
-  }
-
-  publicProfileFollowBtn.hidden = false;
-
-  if (user.relationshipStatus === "following") {
-    publicProfileFollowBtn.textContent = "Following";
-    publicProfileFollowBtn.classList.add(
-      "public-profile__follow-btn_type_following",
-    );
-  } else if (user.relationshipStatus === "pending") {
-    publicProfileFollowBtn.textContent = "Pending";
-    publicProfileFollowBtn.classList.add(
-      "public-profile__follow-btn_type_pending",
-    );
-  } else {
-    publicProfileFollowBtn.textContent = "Follow";
-  }
-
-  publicProfileFollowBtn.disabled = publicProfileFollowPending;
-  publicProfileFollowBtn.setAttribute(
-    "aria-busy",
-    publicProfileFollowPending ? "true" : "false",
-  );
-}
-
-function getRelationshipLabel(status) {
-  const labels = {
-    self: "This is your profile",
-    following: "Following",
-    pending: "Follow request pending",
-    none: "",
-  };
-
-  return labels[status] || "";
-}
-
-function createProfilePostElement(card) {
-  const button = document.createElement("button");
-  const image = document.createElement("img");
-
-  button.type = "button";
-  button.className = "public-profile__post";
-  button.setAttribute("aria-label", `View photo: ${card.name}`);
-
-  image.className = "public-profile__post-image";
-  image.src = card.link;
-  image.alt = card.name;
-
-  image.addEventListener("error", () => {
-    button.remove();
-  });
-
-  button.append(image);
-
-  button.addEventListener("click", () => {
-    returnToProfileAfterPreview = true;
-
-    closeModal(profileModal);
-
-    window.setTimeout(() => {
-      previewImageEl.src = card.link;
-      previewImageEl.alt = card.name;
-      captionEl.textContent = card.name;
-      openModal(previewModal, button);
-    }, 0);
-  });
-
-  return button;
-}
-
-function openPublicProfileAvatarPreview() {
-  const name = profileModal.querySelector(".public-profile__name").textContent;
-
-  openAvatarPreview({
-    image: publicProfileAvatarImg,
-    name,
-    opener: publicProfileAvatarImg,
-    returnToProfile: true,
-  });
-}
-
-publicProfileAvatarImg.tabIndex = 0;
-publicProfileAvatarImg.setAttribute("role", "button");
-
-publicProfileAvatarImg.addEventListener(
-  "click",
-  openPublicProfileAvatarPreview,
-);
-
-publicProfileAvatarImg.addEventListener("keydown", (event) => {
-  handleAvatarKeydown(event, openPublicProfileAvatarPreview);
-});
-
-publicProfileFollowBtn.addEventListener("click", async () => {
-  if (
-    !isAuthenticated ||
-    !activePublicProfileUser ||
-    publicProfileFollowPending ||
-    activePublicProfileUser.relationshipStatus === "self"
-  ) {
-    return;
-  }
-
-  clearRequestError();
-  publicProfileFollowPending = true;
-  updatePublicProfileFollowButton(activePublicProfileUser);
-
-  try {
-    const previousStatus = activePublicProfileUser.relationshipStatus;
-    const followersCountEl = profileModal.querySelector(
-      '[data-profile-stat="followers"]',
-    );
-
-    if (previousStatus === "following" || previousStatus === "pending") {
-      await api.unfollowUser(activePublicProfileUser._id);
-
-      if (previousStatus === "following") {
-        activePublicProfileUser.followersCount = Math.max(
-          0,
-          (activePublicProfileUser.followersCount ?? 0) - 1,
-        );
-      }
-
-      activePublicProfileUser.relationshipStatus = "none";
-
-      if (previousStatus === "following") {
-        profileFollowingCountEl.textContent = Math.max(
-          0,
-          Number(profileFollowingCountEl.textContent || 0) - 1,
-        );
-      }
-    } else {
-      const follow = await api.followUser(activePublicProfileUser._id);
-      const nextStatus =
-        follow?.status === "accepted" ? "following" : "pending";
-
-      if (nextStatus === "following") {
-        activePublicProfileUser.followersCount =
-          (activePublicProfileUser.followersCount ?? 0) + 1;
-
-        profileFollowingCountEl.textContent =
-          Number(profileFollowingCountEl.textContent || 0) + 1;
-      }
-
-      activePublicProfileUser.relationshipStatus = nextStatus;
-    }
-
-    followersCountEl.textContent = activePublicProfileUser.followersCount ?? 0;
-
-    const status = profileModal.querySelector(".public-profile__status");
-    status.textContent = getRelationshipLabel(
-      activePublicProfileUser.relationshipStatus,
-    );
-  } catch {
-    showRequestError(
-      "Could not update this follow relationship. Please try again.",
-    );
-  } finally {
-    publicProfileFollowPending = false;
-    updatePublicProfileFollowButton(activePublicProfileUser);
-  }
-});
-
-async function openPublicProfile(userId, opener) {
-  if (!userId) return;
-
-  clearRequestError();
-
-  try {
-    const [user, posts] = await Promise.all([
-      api.getUserProfile(userId),
-      api.getUserPosts(userId),
-    ]);
-
-    activePublicProfileUser = user;
-
-    const avatar = profileModal.querySelector(".public-profile__avatar");
-    const name = profileModal.querySelector(".public-profile__name");
-    const about = profileModal.querySelector(".public-profile__about");
-    const status = profileModal.querySelector(".public-profile__status");
-    const postsCount = profileModal.querySelector(
-      '[data-profile-stat="posts"]',
-    );
-    const followersCount = profileModal.querySelector(
-      '[data-profile-stat="followers"]',
-    );
-    const followingCount = profileModal.querySelector(
-      '[data-profile-stat="following"]',
-    );
-    const postsGrid = profileModal.querySelector(".public-profile__posts-grid");
-    const emptyState = profileModal.querySelector(".public-profile__empty");
-
-    name.textContent = user.name || "Spots user";
-    about.textContent = user.about || "Sharing memorable places.";
-
-    avatar.src = user.avatar || avatarDefault;
-    avatar.alt = user.name
-      ? `${user.name}'s profile picture`
-      : "Spots user profile picture";
-    avatar.setAttribute(
-      "aria-label",
-      `View ${user.name || "Spots user"}'s profile picture`,
-    );
-
-    avatar.onerror = () => {
-      const fallbackUrl = new URL(avatarDefault, document.baseURI).href;
-
-      if (avatar.src !== fallbackUrl) {
-        avatar.src = avatarDefault;
-      }
-    };
-
-    postsCount.textContent = user.postsCount ?? posts.length;
-    followersCount.textContent = user.followersCount ?? 0;
-    followingCount.textContent = user.followingCount ?? 0;
-    status.textContent = getRelationshipLabel(user.relationshipStatus);
-    updatePublicProfileFollowButton(user);
-
-    postsGrid.replaceChildren(
-      ...posts.map((post) => createProfilePostElement(post)),
-    );
-
-    emptyState.hidden = posts.length !== 0;
-
-    publicProfileOpener = opener;
-    openModal(profileModal, opener);
-  } catch {
-    showRequestError("Could not load this profile. Please try again shortly.");
-  }
-}
 
 // CARD CREATION //
 
