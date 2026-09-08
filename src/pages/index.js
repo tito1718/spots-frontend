@@ -18,6 +18,7 @@ import plusIcon from "../images/spots-images/plus.svg";
 import penWhiteIcon from "../images/spots-images/edit-light.svg";
 import Api from "../utils/Api.js";
 import Notifications from "../components/Notifications.js";
+import SocialList from "../components/SocialList.js";
 import { openModal, closeModal, setLoadingState } from "../utils/helpers.js";
 
 // API CONFIGURATION //
@@ -171,6 +172,21 @@ const notifications = new Notifications({
 
 notifications.setEventListeners();
 
+const socialList = new SocialList({
+  api,
+  modal: socialListModal,
+  title: socialListTitle,
+  count: socialListCount,
+  status: socialListStatus,
+  items: socialListItems,
+  empty: socialListEmpty,
+  avatarFallback: avatarDefault,
+  openModal,
+  closeModal,
+  openPublicProfile,
+  isAuthenticated: () => isAuthenticated,
+});
+
 // PROFILE PREVIEW RETURN //
 
 previewModal.addEventListener("modalclosed", () => {
@@ -319,112 +335,12 @@ async function loadGuestApp() {
   }
 }
 
-function createSocialListItem(entry) {
-  const user = entry?.user;
-
-  if (!user?._id) {
-    return null;
-  }
-
-  const item = document.createElement("li");
-  item.className = "social-list__item";
-
-  const button = document.createElement("button");
-  button.className = "social-list__user";
-  button.type = "button";
-  button.setAttribute("aria-label", `View ${user.name}'s profile`);
-
-  const avatar = document.createElement("img");
-  avatar.className = "social-list__avatar";
-  avatar.src = user.avatar || avatarDefault;
-  avatar.alt = `${user.name}'s profile picture`;
-
-  avatar.addEventListener("error", () => {
-    const fallbackUrl = new URL(avatarDefault, document.baseURI).href;
-
-    if (avatar.src !== fallbackUrl) {
-      avatar.src = avatarDefault;
-    }
-  });
-
-  const details = document.createElement("span");
-  details.className = "social-list__details";
-
-  const name = document.createElement("strong");
-  name.className = "social-list__name";
-  name.textContent = user.name;
-
-  const about = document.createElement("span");
-  about.className = "social-list__about";
-  about.textContent = user.about || "Explorer";
-
-  details.append(name, about);
-  button.append(avatar, details);
-  item.append(button);
-
-  button.addEventListener("click", () => {
-    closeModal(socialListModal);
-    openPublicProfile(user._id, button);
-  });
-
-  return item;
-}
-
-async function handleSocialListClick(type, opener) {
-  if (!isAuthenticated) return;
-
-  clearRequestError();
-
-  const isFollowers = type === "followers";
-  const title = isFollowers ? "Followers" : "Following";
-
-  socialListTitle.textContent = title;
-  socialListCount.textContent = "0";
-  socialListCount.setAttribute("aria-label", "0 accounts");
-  socialListStatus.textContent = "Loading…";
-  socialListEmpty.hidden = true;
-  socialListEmpty.textContent = "";
-  socialListItems.replaceChildren();
-
-  openModal(socialListModal, opener);
-
-  try {
-    const entries = isFollowers
-      ? await api.getFollowers()
-      : await api.getFollowing();
-
-    const items = entries.map(createSocialListItem).filter(Boolean);
-
-    socialListStatus.textContent = "";
-
-    socialListCount.textContent = String(items.length);
-    socialListCount.setAttribute(
-      "aria-label",
-      `${items.length} ${items.length === 1 ? "account" : "accounts"}`,
-    );
-
-    if (!items.length) {
-      socialListEmpty.textContent = isFollowers
-        ? "No followers yet. When someone follows you, they'll appear here."
-        : "Not following anyone yet. Accounts you follow will appear here.";
-      socialListEmpty.hidden = false;
-      return;
-    }
-
-    socialListItems.append(...items);
-  } catch {
-    socialListStatus.textContent = "";
-    socialListEmpty.textContent = `Could not load ${type}. Please try again.`;
-    socialListEmpty.hidden = false;
-  }
-}
-
 profileFollowersBtn.addEventListener("click", () => {
-  handleSocialListClick("followers", profileFollowersBtn);
+  void socialList.open("followers", profileFollowersBtn);
 });
 
 profileFollowingBtn.addEventListener("click", () => {
-  handleSocialListClick("following", profileFollowingBtn);
+  void socialList.open("following", profileFollowingBtn);
 });
 
 // MAIN PROFILE AVATAR PREVIEW //
