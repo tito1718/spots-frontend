@@ -20,6 +20,7 @@ import Api from "../utils/Api.js";
 import Notifications from "../components/Notifications.js";
 import SocialList from "../components/SocialList.js";
 import PublicProfile from "../components/PublicProfile.js";
+import Card from "../components/Card.js";
 import { openModal, closeModal, setLoadingState } from "../utils/helpers.js";
 
 // API CONFIGURATION //
@@ -395,131 +396,36 @@ profileAvatarImg.addEventListener("keydown", (event) => {
 
 // CARD CREATION //
 
+function requestCardDelete(card) {
+  clearRequestError(deleteForm);
+  cardToDelete = card;
+  openModal(deleteModal);
+}
+
+function openCardPreview(data, opener) {
+  previewImageEl.src = data.link;
+  previewImageEl.alt = data.name;
+  captionEl.textContent = data.name;
+  openModal(previewModal, opener);
+}
+
 function getCardElement(data) {
-  const cardElement = cardTemplate.cloneNode(true);
-  const title = cardElement.querySelector(".card__title");
-  const image = cardElement.querySelector(".card__image");
-  const likeBtn = cardElement.querySelector(".card__like-btn");
-  const likeCount = cardElement.querySelector(".card__like-count");
-  const deleteBtn = cardElement.querySelector(".card__delete-btn");
-  const ownerButton = cardElement.querySelector(".card__owner");
-  const ownerAvatar = cardElement.querySelector(".card__owner-avatar");
-  const ownerName = cardElement.querySelector(".card__owner-name");
-  const ownerId = typeof data.owner === "object" ? data.owner._id : data.owner;
-  const owner =
-    typeof data.owner === "object" && data.owner
-      ? data.owner
-      : {
-          _id: ownerId,
-          name: "Spots user",
-          avatar: "",
-        };
-
-  // CARD CONTENT AND KEYBOARD ACCESS //
-
-  title.textContent = data.name;
-  ownerName.textContent = owner.name || "Spots user";
-  ownerAvatar.src = owner.avatar || avatarDefault;
-  ownerAvatar.alt = owner.name
-    ? `${owner.name}'s profile picture`
-    : "Spots user profile picture";
-
-  ownerAvatar.addEventListener("error", () => {
-    const fallbackUrl = new URL(avatarDefault, document.baseURI).href;
-
-    if (ownerAvatar.src !== fallbackUrl) {
-      ownerAvatar.src = avatarDefault;
-    }
+  const card = new Card({
+    data,
+    template: cardTemplate,
+    api,
+    avatarFallback: avatarDefault,
+    isAuthenticated: () => isAuthenticated,
+    getCurrentUserId: () => currentUserId,
+    openLogin: () => openAuthModal(loginModal),
+    openPublicProfile,
+    openPreview: openCardPreview,
+    requestDelete: requestCardDelete,
+    clearRequestError,
+    showRequestError,
   });
 
-  ownerButton.setAttribute(
-    "aria-label",
-    `View ${owner.name || "Spots user"}'s profile`,
-  );
-
-  ownerButton.addEventListener("click", () => {
-    openPublicProfile(ownerId, ownerButton);
-  });
-
-  image.src = data.link;
-  image.alt = data.name;
-  image.tabIndex = 0;
-  image.setAttribute("role", "button");
-  image.setAttribute("aria-label", `View photo: ${data.name}`);
-  image.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      image.click();
-    }
-  });
-
-  // LIKE INTERACTION //
-
-  let isLiked = Boolean(data.isLiked);
-  let isLikePending = false;
-  let likeCountValue =
-    typeof data.likesCount === "number" ? data.likesCount : 0;
-  likeCount.textContent = likeCountValue;
-  likeBtn.classList.toggle("card__like-btn_active", isLiked);
-  likeBtn.addEventListener("click", () => {
-    if (isLikePending) return;
-
-    if (!isAuthenticated) {
-      openAuthModal(loginModal);
-      return;
-    }
-
-    clearRequestError();
-    isLikePending = true;
-    likeBtn.disabled = true;
-    likeBtn.setAttribute("aria-busy", "true");
-
-    const apiCall = isLiked ? api.unlikeCard(data._id) : api.likeCard(data._id);
-    apiCall
-      .then((updatedCard) => {
-        isLiked = Boolean(updatedCard.isLiked);
-        if (typeof updatedCard.likesCount === "number") {
-          likeCountValue = updatedCard.likesCount;
-        } else {
-          likeCountValue = isLiked
-            ? likeCountValue + 1
-            : Math.max(0, likeCountValue - 1);
-        }
-        likeCount.textContent = likeCountValue;
-        likeBtn.classList.toggle("card__like-btn_active", isLiked);
-      })
-      .catch(() => {
-        showRequestError("Could not update the like. Please try again.");
-      })
-      .finally(() => {
-        isLikePending = false;
-        likeBtn.disabled = false;
-        likeBtn.setAttribute("aria-busy", "false");
-      });
-  });
-
-  // DELETE CONFIRMATION //
-
-  if (isAuthenticated && ownerId === currentUserId) {
-    deleteBtn.addEventListener("click", () => {
-      clearRequestError(deleteForm);
-      cardToDelete = { element: cardElement, id: data._id };
-      openModal(deleteModal);
-    });
-  } else {
-    deleteBtn.remove();
-  }
-
-  // IMAGE PREVIEW //
-
-  image.addEventListener("click", () => {
-    previewImageEl.src = data.link;
-    previewImageEl.alt = data.name;
-    captionEl.textContent = data.name;
-    openModal(previewModal, image);
-  });
-
-  return cardElement;
+  return card.getElement();
 }
 
 // CARD RENDERING //
