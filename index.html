@@ -255,14 +255,28 @@
               <h2 class="modal__title notifications__title">Notifications</h2>
             </div>
 
-            <button type="button" class="notifications__mark-all-btn" hidden>
-              Mark all as read
-            </button>
+            <div class="notifications__header-actions">
+              <button
+                type="button"
+                class="notifications__clear-read-btn"
+                hidden
+              >
+                Clear read
+              </button>
+
+              <button type="button" class="notifications__mark-all-btn" hidden>
+                Mark all as read
+              </button>
+            </div>
           </div>
 
           <p class="notifications__status" aria-live="polite"></p>
 
           <ul class="notifications__list"></ul>
+
+          <button type="button" class="notifications__load-more-btn" hidden>
+            Load more
+          </button>
 
           <div class="notifications__empty" hidden>
             <p class="notifications__empty-title">You’re all caught up</p>
@@ -373,6 +387,51 @@
         ></button>
         <img src="" alt="" class="modal__image" />
         <p class="modal__caption"></p>
+
+        <section class="comments" hidden aria-label="Photo comments">
+          <div class="comments__header">
+            <h2 class="comments__title">Comments</h2>
+            <span class="comments__count" aria-label="0 comments">0</span>
+          </div>
+
+          <p class="comments__status" role="status" aria-live="polite"></p>
+
+          <ul class="comments__list" aria-label="Comments"></ul>
+
+          <p class="comments__empty">
+            No comments yet. Start the conversation.
+          </p>
+
+          <form class="comments__form" id="comment-form" novalidate>
+            <label class="comments__label" for="comment-input">
+              Add a comment
+            </label>
+
+            <div class="comments__composer">
+              <textarea
+                class="comments__input"
+                id="comment-input"
+                name="comment"
+                rows="2"
+                maxlength="2000"
+                placeholder="Write a comment..."
+                required
+              ></textarea>
+
+              <button class="comments__submit" type="submit">Post</button>
+            </div>
+
+            <span
+              class="comments__error"
+              id="comment-input-error"
+              aria-live="polite"
+            ></span>
+          </form>
+
+          <p class="comments__login-message" hidden>
+            Log in to join the conversation.
+          </p>
+        </section>
       </div>
     </div>
     <div class="modal" id="edit-avatar-modal">

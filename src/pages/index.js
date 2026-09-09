@@ -22,6 +22,7 @@ import SocialList from "../components/SocialList.js";
 import PublicProfile from "../components/PublicProfile.js";
 import Card from "../components/Card.js";
 import MainProfile from "../components/MainProfile.js";
+import Comments from "../components/Comments.js";
 import { openModal, closeModal, setLoadingState } from "../utils/helpers.js";
 
 // API CONFIGURATION //
@@ -105,6 +106,12 @@ const notificationsEmpty = notificationsModal.querySelector(
 const notificationsMarkAllBtn = notificationsModal.querySelector(
   ".notifications__mark-all-btn",
 );
+const notificationsClearReadBtn = notificationsModal.querySelector(
+  ".notifications__clear-read-btn",
+);
+const notificationsLoadMoreBtn = notificationsModal.querySelector(
+  ".notifications__load-more-btn",
+);
 const showRegisterBtn = document.querySelector("#show-register-btn");
 const showLoginBtn = document.querySelector("#show-login-btn");
 const editProfileForm = editProfileModal.querySelector(".modal__form");
@@ -113,6 +120,18 @@ const avatarForm = avatarModal.querySelector(".modal__form");
 const deleteForm = document.querySelector("#delete-form");
 const previewImageEl = previewModal.querySelector(".modal__image");
 const captionEl = previewModal.querySelector(".modal__caption");
+const commentsRoot = previewModal.querySelector(".comments");
+const commentsCount = previewModal.querySelector(".comments__count");
+const commentsStatus = previewModal.querySelector(".comments__status");
+const commentsList = previewModal.querySelector(".comments__list");
+const commentsEmpty = previewModal.querySelector(".comments__empty");
+const commentsForm = previewModal.querySelector(".comments__form");
+const commentsInput = previewModal.querySelector(".comments__input");
+const commentsSubmit = previewModal.querySelector(".comments__submit");
+const commentsError = previewModal.querySelector(".comments__error");
+const commentsLoginMessage = previewModal.querySelector(
+  ".comments__login-message",
+);
 const deleteSubmitBtn = deleteForm.querySelector(
   ".modal__submit-btn_type_delete",
 );
@@ -124,7 +143,73 @@ const cardTemplate = document
   .content.querySelector(".card");
 const cardsList = document.querySelector(".cards__list");
 
+// COMMENTS //
+
+function openCommentAuthorProfile(userId, opener) {
+  if (!userId) return;
+
+  returnToProfileAfterPreview = false;
+  closeModal(previewModal);
+
+  window.setTimeout(() => {
+    void openPublicProfile(userId, opener);
+  }, 0);
+}
+
+const comments = new Comments({
+  api,
+  root: commentsRoot,
+  count: commentsCount,
+  status: commentsStatus,
+  list: commentsList,
+  empty: commentsEmpty,
+  form: commentsForm,
+  input: commentsInput,
+  submitButton: commentsSubmit,
+  error: commentsError,
+  loginMessage: commentsLoginMessage,
+  avatarFallback: avatarDefault,
+  isAuthenticated: () => isAuthenticated,
+  getCurrentUserId: () => currentUserId,
+  openPublicProfile: openCommentAuthorProfile,
+});
+
+comments.setEventListeners();
+comments.hide();
+
 // NOTIFICATIONS //
+
+function openNotificationPost(notification, opener) {
+  const post = notification?.post;
+
+  if (!post?._id || !post?.image?.url) return;
+
+  const card = {
+    ...post,
+    name: post.caption || "Spots photo",
+    link: post.image.url,
+  };
+
+  const targetCommentId =
+    notification.type === "post_comment" || notification.type === "comment_like"
+      ? notification.comment?._id || null
+      : null;
+
+  const previewContainer = previewModal.querySelector(
+    ".modal__image-container",
+  );
+
+  previewContainer.classList.remove("modal__image-container_type_avatar");
+  previewContainer.classList.add("modal__image-container_type_post");
+
+  previewImageEl.classList.remove("modal__image_type_avatar");
+  previewImageEl.src = card.link;
+  previewImageEl.alt = card.name;
+  captionEl.textContent = card.name;
+
+  openModal(previewModal, opener);
+  void comments.show(card, { targetCommentId });
+}
 
 const notifications = new Notifications({
   api,
@@ -135,10 +220,13 @@ const notifications = new Notifications({
   status: notificationsStatus,
   empty: notificationsEmpty,
   markAllButton: notificationsMarkAllBtn,
+  clearReadButton: notificationsClearReadBtn,
+  loadMoreButton: notificationsLoadMoreBtn,
   avatarFallback: avatarDefault,
   openModal,
   closeModal,
   openPublicProfile,
+  openNotificationPost,
   refreshFollowSummary: () => mainProfile.refreshFollowSummary(),
   isAuthenticated: () => isAuthenticated,
 });
@@ -165,10 +253,20 @@ function openPublicProfilePostPreview(card, opener) {
   closeModal(profileModal);
 
   window.setTimeout(() => {
+    const previewContainer = previewModal.querySelector(
+      ".modal__image-container",
+    );
+
+    previewContainer.classList.remove("modal__image-container_type_avatar");
+    previewContainer.classList.add("modal__image-container_type_post");
+
+    previewImageEl.classList.remove("modal__image_type_avatar");
     previewImageEl.src = card.link;
     previewImageEl.alt = card.name;
     captionEl.textContent = card.name;
+
     openModal(previewModal, opener);
+    void comments.show(card);
   }, 0);
 }
 
@@ -196,7 +294,17 @@ async function openPublicProfile(userId, opener) {
 // PROFILE PREVIEW RETURN //
 
 previewModal.addEventListener("modalclosed", () => {
+  const previewContainer = previewModal.querySelector(
+    ".modal__image-container",
+  );
+
   previewImageEl.classList.remove("modal__image_type_avatar");
+  previewContainer.classList.remove(
+    "modal__image-container_type_avatar",
+    "modal__image-container_type_post",
+  );
+
+  comments.hide();
 
   if (!returnToProfileAfterPreview) return;
 
@@ -222,6 +330,15 @@ document.querySelectorAll(".modal").forEach((modal) => {
 function openAvatarPreview({ image, name, opener, returnToProfile = false }) {
   if (!image?.src) return;
 
+  comments.hide();
+
+  const previewContainer = previewModal.querySelector(
+    ".modal__image-container",
+  );
+
+  previewContainer.classList.remove("modal__image-container_type_post");
+  previewContainer.classList.add("modal__image-container_type_avatar");
+
   if (returnToProfile) {
     returnToProfileAfterPreview = true;
     closeModal(profileModal);
@@ -233,9 +350,7 @@ function openAvatarPreview({ image, name, opener, returnToProfile = false }) {
     : "Spots user profile picture";
   previewImageEl.classList.add("modal__image_type_avatar");
 
-  captionEl.textContent = name
-    ? `${name} — Profile picture`
-    : "Profile picture";
+  captionEl.textContent = name || "Spots";
 
   window.setTimeout(() => {
     openModal(previewModal, opener);
@@ -250,6 +365,7 @@ function setAuthenticatedView(authenticated) {
   logoutBtn.hidden = !authenticated;
   notificationBtn.hidden = !authenticated;
   mainProfile.setAuthenticatedView(authenticated);
+  comments.refreshAuthenticationState();
 
   if (!authenticated) {
     notifications.renderUnreadCount(0);
@@ -340,10 +456,20 @@ function requestCardDelete(card) {
 }
 
 function openCardPreview(data, opener) {
+  const previewContainer = previewModal.querySelector(
+    ".modal__image-container",
+  );
+
+  previewContainer.classList.remove("modal__image-container_type_avatar");
+  previewContainer.classList.add("modal__image-container_type_post");
+
+  previewImageEl.classList.remove("modal__image_type_avatar");
   previewImageEl.src = data.link;
   previewImageEl.alt = data.name;
   captionEl.textContent = data.name;
+
   openModal(previewModal, opener);
+  void comments.show(data);
 }
 
 function getCardElement(data) {

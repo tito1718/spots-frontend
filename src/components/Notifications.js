@@ -8,10 +8,13 @@ class Notifications {
     status,
     empty,
     markAllButton,
+    clearReadButton,
+    loadMoreButton,
     avatarFallback,
     openModal,
     closeModal,
     openPublicProfile,
+    openNotificationPost,
     refreshFollowSummary,
     isAuthenticated,
   }) {
@@ -23,10 +26,17 @@ class Notifications {
     this._status = status;
     this._empty = empty;
     this._markAllButton = markAllButton;
+    this._clearReadButton = clearReadButton;
+    this._loadMoreButton = loadMoreButton;
+    this._page = 1;
+    this._pageSize = 20;
+    this._hasNextPage = false;
+    this._loadedNotifications = [];
     this._avatarFallback = avatarFallback;
     this._openModal = openModal;
     this._closeModal = closeModal;
     this._openPublicProfile = openPublicProfile;
+    this._openNotificationPost = openNotificationPost;
     this._refreshFollowSummary = refreshFollowSummary;
     this._isAuthenticated = isAuthenticated;
 
@@ -34,6 +44,8 @@ class Notifications {
       this._handleNotificationButtonClick.bind(this);
 
     this._handleMarkAllClick = this._handleMarkAllClick.bind(this);
+    this._handleClearReadClick = this._handleClearReadClick.bind(this);
+    this._handleLoadMoreClick = this._handleLoadMoreClick.bind(this);
   }
 
   renderUnreadCount(count = 0) {
@@ -127,6 +139,7 @@ class Notifications {
       follow_accepted: "accepted your follow request.",
       post_like: "liked your photo.",
       post_comment: "commented on your photo.",
+      comment_like: "liked your comment.",
     };
 
     return messages[notification.type] || "interacted with your account.";
@@ -137,6 +150,17 @@ class Notifications {
       button.disabled = loading;
       button.setAttribute("aria-busy", loading ? "true" : "false");
     });
+  }
+
+  async _markNotificationRead(notification, item) {
+    if (notification.readAt) return;
+
+    await this._api.markNotificationRead(notification._id);
+
+    notification.readAt = new Date().toISOString();
+    item.classList.remove("notification_type_unread");
+
+    await this.refreshUnreadCount();
   }
 
   _createItem(notification) {
@@ -178,16 +202,121 @@ class Notifications {
 
     avatarButton.append(avatar);
 
-    avatarButton.addEventListener("click", () => {
-      this._closeModal(this._modal);
+    avatarButton.addEventListener("click", async () => {
+      if (avatarButton.getAttribute("aria-busy") === "true") return;
 
-      window.setTimeout(() => {
-        this._openPublicProfile(actor._id, avatarButton);
-      }, 0);
+      avatarButton.setAttribute("aria-busy", "true");
+      this._status.textContent = "";
+
+      try {
+        await this._markNotificationRead(notification, item);
+
+        this._closeModal(this._modal);
+
+        window.setTimeout(() => {
+          this._openPublicProfile(actor._id, avatarButton);
+        }, 0);
+      } catch {
+        this._status.textContent =
+          "Could not open this notification. Please try again.";
+      } finally {
+        avatarButton.setAttribute("aria-busy", "false");
+      }
     });
 
     const body = document.createElement("div");
     body.className = "notification__body";
+
+    if (notification.type === "follow_accepted") {
+      body.classList.add("notification__body_type_link");
+      body.tabIndex = 0;
+      body.setAttribute("role", "link");
+      body.setAttribute(
+        "aria-label",
+        `View ${actor.name || "this user"}'s profile`,
+      );
+
+      const openAcceptedProfile = async () => {
+        if (body.getAttribute("aria-busy") === "true") return;
+
+        body.setAttribute("aria-busy", "true");
+        this._status.textContent = "";
+
+        try {
+          await this._markNotificationRead(notification, item);
+
+          this._closeModal(this._modal);
+
+          window.setTimeout(() => {
+            this._openPublicProfile(actor._id, body);
+          }, 0);
+        } catch {
+          this._status.textContent =
+            "Could not open this notification. Please try again.";
+        } finally {
+          body.setAttribute("aria-busy", "false");
+        }
+      };
+
+      body.addEventListener("click", () => {
+        void openAcceptedProfile();
+      });
+
+      body.addEventListener("keydown", (evt) => {
+        if (evt.key !== "Enter" && evt.key !== " ") return;
+
+        evt.preventDefault();
+        void openAcceptedProfile();
+      });
+    }
+
+    const opensPost =
+      notification.type === "post_like" ||
+      notification.type === "post_comment" ||
+      notification.type === "comment_like";
+
+    if (opensPost && notification.post?._id) {
+      body.classList.add("notification__body_type_link");
+      body.tabIndex = 0;
+      body.setAttribute("role", "button");
+      body.setAttribute(
+        "aria-label",
+        `Open ${notification.post.caption || "related photo"}`,
+      );
+
+      const openRelatedPost = async () => {
+        if (body.getAttribute("aria-busy") === "true") return;
+
+        body.setAttribute("aria-busy", "true");
+        this._status.textContent = "";
+
+        try {
+          await this._markNotificationRead(notification, item);
+
+          this._closeModal(this._modal);
+
+          window.setTimeout(() => {
+            this._openNotificationPost(notification, body);
+          }, 0);
+        } catch {
+          this._status.textContent =
+            "Could not open this notification. Please try again.";
+        } finally {
+          body.setAttribute("aria-busy", "false");
+        }
+      };
+
+      body.addEventListener("click", () => {
+        void openRelatedPost();
+      });
+
+      body.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+
+        event.preventDefault();
+        void openRelatedPost();
+      });
+    }
 
     const message = document.createElement("p");
     message.className = "notification__message";
@@ -203,7 +332,8 @@ class Notifications {
 
     if (
       (notification.type === "post_like" ||
-        notification.type === "post_comment") &&
+        notification.type === "post_comment" ||
+        notification.type === "comment_like") &&
       notification.post?.caption
     ) {
       message.append(
@@ -281,21 +411,64 @@ class Notifications {
       body.append(actions);
     }
 
-    item.append(avatarButton, body);
+    const deleteButton = document.createElement("button");
+    deleteButton.className = "notification__delete-btn";
+    deleteButton.type = "button";
+    deleteButton.setAttribute("aria-label", "Delete notification");
+
+    deleteButton.addEventListener("click", async (evt) => {
+      evt.stopPropagation();
+
+      if (deleteButton.disabled) return;
+
+      deleteButton.disabled = true;
+      deleteButton.setAttribute("aria-busy", "true");
+      this._status.textContent = "";
+
+      try {
+        await this._api.deleteNotification(notification._id);
+
+        item.remove();
+
+        await this.refreshUnreadCount();
+
+        if (!this._list.children.length) {
+          this._empty.hidden = false;
+          this._markAllButton.hidden = true;
+          this._clearReadButton.hidden = true;
+        } else {
+          await this.load();
+        }
+      } catch {
+        this._status.textContent =
+          "Could not delete this notification. Please try again.";
+        deleteButton.disabled = false;
+        deleteButton.setAttribute("aria-busy", "false");
+      }
+    });
+
+    item.append(avatarButton, body, deleteButton);
 
     return item;
   }
 
-  async load() {
-    this._status.textContent = "Loading activity…";
-    this._empty.hidden = true;
-    this._markAllButton.hidden = true;
-    this._list.replaceChildren();
+  async load({ append = false } = {}) {
+    if (!append) {
+      this._page = 1;
+      this._hasNextPage = false;
+      this._loadedNotifications = [];
+      this._status.textContent = "Loading activity…";
+      this._empty.hidden = true;
+      this._markAllButton.hidden = true;
+      this._clearReadButton.hidden = true;
+      this._loadMoreButton.hidden = true;
+      this._list.replaceChildren();
+    }
 
     try {
       const data = await this._api.getNotifications({
-        page: 1,
-        limit: 50,
+        page: this._page,
+        limit: this._pageSize,
       });
 
       const notifications = data.notifications || [];
@@ -303,29 +476,95 @@ class Notifications {
         .map((notification) => this._createItem(notification))
         .filter(Boolean);
 
+      this._loadedNotifications = append
+        ? [...this._loadedNotifications, ...notifications]
+        : notifications;
+
       this._status.textContent = "";
 
-      if (!items.length) {
+      if (!append && !items.length) {
         this._empty.hidden = false;
+        this._loadMoreButton.hidden = true;
         return;
       }
 
-      this._list.append(...items);
+      if (items.length) {
+        this._list.append(...items);
+      }
 
-      this._markAllButton.hidden = !notifications.some(
+      this._hasNextPage =
+        typeof data.pagination?.hasNextPage === "boolean"
+          ? data.pagination.hasNextPage
+          : notifications.length === this._pageSize;
+
+      this._loadMoreButton.hidden = !this._hasNextPage;
+
+      const renderedNotifications = Array.from(this._list.children);
+
+      if (!renderedNotifications.length) {
+        this._empty.hidden = false;
+        this._markAllButton.hidden = true;
+        this._clearReadButton.hidden = true;
+        this._loadMoreButton.hidden = true;
+        return;
+      }
+
+      this._empty.hidden = true;
+
+      this._markAllButton.hidden = !this._loadedNotifications.some(
         (notification) => !notification.readAt,
       );
-    } catch {
-      this._status.textContent =
-        "Could not load notifications. Please try again.";
+
+      this._clearReadButton.hidden = !this._loadedNotifications.some(
+        (notification) => Boolean(notification.readAt),
+      );
+    } catch (error) {
+      this._status.textContent = append
+        ? "Could not load more notifications. Please try again."
+        : "Could not load notifications. Please try again.";
+
+      if (append) {
+        this._loadMoreButton.hidden = !this._hasNextPage;
+        throw error;
+      }
     }
   }
 
   _handleNotificationButtonClick() {
     if (!this._isAuthenticated()) return;
 
+    this._page = 1;
     this._openModal(this._modal, this._button);
     void this.load();
+  }
+
+  async _handleLoadMoreClick() {
+    if (
+      this._loadMoreButton.disabled ||
+      !this._hasNextPage ||
+      !this._isAuthenticated()
+    ) {
+      return;
+    }
+
+    const previousPage = this._page;
+
+    this._loadMoreButton.disabled = true;
+    this._loadMoreButton.setAttribute("aria-busy", "true");
+    this._loadMoreButton.textContent = "Loading…";
+    this._status.textContent = "";
+
+    this._page += 1;
+
+    try {
+      await this.load({ append: true });
+    } catch {
+      this._page = previousPage;
+    } finally {
+      this._loadMoreButton.disabled = false;
+      this._loadMoreButton.setAttribute("aria-busy", "false");
+      this._loadMoreButton.textContent = "Load more";
+    }
   }
 
   async _handleMarkAllClick() {
@@ -348,10 +587,33 @@ class Notifications {
     }
   }
 
+  async _handleClearReadClick() {
+    if (this._clearReadButton.disabled) return;
+
+    this._clearReadButton.disabled = true;
+    this._clearReadButton.textContent = "Clearing…";
+    this._status.textContent = "";
+
+    try {
+      await this._api.clearNotifications();
+      await this.load();
+      await this.refreshUnreadCount();
+    } catch {
+      this._status.textContent =
+        "Could not clear read notifications. Please try again.";
+    } finally {
+      this._clearReadButton.disabled = false;
+      this._clearReadButton.textContent = "Clear read";
+    }
+  }
+
   setEventListeners() {
     this._button.addEventListener("click", this._handleNotificationButtonClick);
 
     this._markAllButton.addEventListener("click", this._handleMarkAllClick);
+
+    this._clearReadButton.addEventListener("click", this._handleClearReadClick);
+    this._loadMoreButton.addEventListener("click", this._handleLoadMoreClick);
   }
 }
 

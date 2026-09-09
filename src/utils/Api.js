@@ -298,6 +298,53 @@ class Api {
     return this._request("/follows/summary");
   }
 
+  // COMMENT REQUESTS //
+
+  async getComments(postId) {
+    const data = await this._request(`/posts/${postId}/comments?limit=50`);
+    return data.comments || [];
+  }
+
+  async createComment(postId, text) {
+    const data = await this._request(`/posts/${postId}/comments`, {
+      method: "POST",
+      body: { body: text },
+    });
+
+    return data.comment;
+  }
+
+  async updateComment(commentId, text) {
+    const data = await this._request(`/comments/${commentId}`, {
+      method: "PATCH",
+      body: { body: text },
+    });
+
+    return data.comment;
+  }
+
+  deleteComment(commentId) {
+    return this._request(`/comments/${commentId}`, {
+      method: "DELETE",
+    });
+  }
+
+  async likeComment(commentId) {
+    const data = await this._request(`/comments/${commentId}/likes`, {
+      method: "PUT",
+    });
+
+    return data.comment;
+  }
+
+  async unlikeComment(commentId) {
+    const data = await this._request(`/comments/${commentId}/likes`, {
+      method: "DELETE",
+    });
+
+    return data.comment;
+  }
+
   // NOTIFICATION REQUESTS //
 
   async getNotifications({ page = 1, limit = 50, unreadOnly = false } = {}) {
