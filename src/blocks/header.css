@@ -195,3 +195,124 @@
     font-size: 7px;
   }
 }
+
+/* DISCOVER */
+
+.header__discover-btn {
+  order: 0;
+  display: inline-flex;
+  flex: 0 0 34px;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #212121;
+  cursor: pointer;
+  transition:
+    background-color 180ms ease,
+    transform 180ms ease,
+    opacity 180ms ease;
+}
+
+.header__discover-btn[hidden] {
+  display: none;
+}
+
+.header__discover-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .header__discover-btn:hover {
+    background-color: #f3f3f3;
+    transform: translateY(-1px);
+  }
+}
+
+.header__discover-btn:active {
+  transform: translateY(0);
+}
+
+.header__discover-btn:focus-visible {
+  outline: 2px solid #212121;
+  outline-offset: 2px;
+}
+
+@media screen and (max-width: 900px) {
+  .header__discover-btn {
+    flex-basis: 32px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .header__discover-icon {
+    width: 19px;
+    height: 19px;
+  }
+}
+
+@media screen and (max-width: 627px) {
+  .header__discover-btn {
+    flex-basis: 26px;
+    width: 26px;
+    height: 26px;
+  }
+
+  .header__discover-icon {
+    width: 17px;
+    height: 17px;
+  }
+}
+
+/* EXTRA-SMALL MOBILE HEADER */
+
+@media screen and (max-width: 380px) {
+  .header {
+    grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr);
+    padding-right: 4px;
+    padding-left: 4px;
+  }
+
+  .header__logo {
+    width: 72px;
+  }
+
+  .header__actions {
+    gap: 1px;
+  }
+
+  .header__discover-btn,
+  .header__notification-btn {
+    flex-basis: 22px;
+    width: 22px;
+    height: 26px;
+  }
+
+  .header__discover-icon,
+  .header__notification-icon {
+    width: 15px;
+    height: 15px;
+  }
+
+  .header__login-btn,
+  .header__logout-btn {
+    padding-right: 7px;
+    padding-left: 7px;
+    font-size: 11px;
+  }
+
+  .header__notification-badge {
+    right: -1px;
+  }
+}

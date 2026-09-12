@@ -261,10 +261,10 @@ class Api {
     return data.user;
   }
 
-  async editUserInfo({ name, about }) {
+  async editUserInfo({ name, about, isPrivate }) {
     const data = await this._request("/users/me", {
       method: "PATCH",
-      body: { name, about },
+      body: { name, about, isPrivate },
     });
 
     return data.user;
@@ -282,6 +282,16 @@ class Api {
   async getUserProfile(userId) {
     const data = await this._request(`/users/${userId}`);
     return data.user;
+  }
+
+  async searchUsers(search, { page = 1, limit = 20 } = {}) {
+    const params = new URLSearchParams({
+      search,
+      page: String(page),
+      limit: String(limit),
+    });
+
+    return this._request(`/users?${params.toString()}`);
   }
 
   async getFollowers() {

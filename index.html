@@ -24,6 +24,23 @@
         <div class="header__actions">
           <button
             type="button"
+            class="header__discover-btn"
+            aria-label="Discover people"
+            aria-haspopup="dialog"
+            hidden
+          >
+            <svg
+              class="header__discover-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="6.5"></circle>
+              <path d="m16 16 4 4"></path>
+            </svg>
+          </button>
+
+          <button
+            type="button"
             class="header__notification-btn"
             aria-label="Open notifications"
             aria-haspopup="dialog"
@@ -279,8 +296,105 @@
                 class="modal__error"
               ></span>
             </label>
+            <div class="profile-privacy">
+              <div class="profile-privacy__content">
+                <div class="profile-privacy__heading">
+                  <span class="profile-privacy__title">Account privacy</span>
+                  <span
+                    class="profile-privacy__state"
+                    data-profile-privacy-state
+                  >
+                    Public account
+                  </span>
+                </div>
+
+                <p class="profile-privacy__description">
+                  Anyone can follow you immediately and view your posts.
+                </p>
+              </div>
+
+              <label class="profile-privacy__switch">
+                <input
+                  id="profile-private-input"
+                  class="profile-privacy__input"
+                  type="checkbox"
+                  name="isPrivate"
+                />
+                <span class="profile-privacy__slider" aria-hidden="true"></span>
+                <span class="profile-privacy__sr-label">Private account</span>
+              </label>
+            </div>
+
             <button type="submit" class="modal__submit-btn">Save</button>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="discover-people-modal">
+      <div class="modal__container modal__container_type_discover-people">
+        <button
+          type="button"
+          class="modal__close-btn"
+          aria-label="Close Discover people"
+        ></button>
+
+        <div class="discover-people">
+          <div class="discover-people__header">
+            <p class="discover-people__eyebrow">Explore</p>
+            <h2 class="modal__title discover-people__title">Discover people</h2>
+          </div>
+
+          <form class="discover-people__form" role="search">
+            <label class="discover-people__search">
+              <span class="discover-people__search-label"> Search people </span>
+
+              <div class="discover-people__search-control">
+                <svg
+                  class="discover-people__search-icon"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <circle cx="11" cy="11" r="6.5"></circle>
+                  <path d="m16 16 4 4"></path>
+                </svg>
+
+                <input
+                  class="discover-people__input"
+                  type="search"
+                  name="search"
+                  maxlength="40"
+                  autocomplete="off"
+                  placeholder="Search by name or bio"
+                  aria-label="Search people by name or bio"
+                />
+
+                <button class="discover-people__submit" type="submit">
+                  Search
+                </button>
+              </div>
+            </label>
+          </form>
+
+          <p
+            class="discover-people__status"
+            role="status"
+            aria-live="polite"
+          ></p>
+
+          <ul
+            class="discover-people__results"
+            aria-label="People search results"
+          ></ul>
+
+          <p
+            class="discover-people__empty"
+            role="status"
+            aria-live="polite"
+            hidden
+          >
+            Search for people to discover new profiles.
+          </p>
         </div>
       </div>
     </div>

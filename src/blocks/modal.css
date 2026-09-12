@@ -1773,3 +1773,532 @@
     transition: none;
   }
 }
+
+/* DISCOVER PEOPLE MODAL */
+
+.modal__container_type_discover-people {
+  width: min(calc(100vw - 48px), 560px);
+  min-height: 360px;
+  max-height: min(680px, calc(100vh - 48px));
+  padding: 32px;
+  overflow: hidden;
+}
+
+.discover-people {
+  display: flex;
+  min-height: 296px;
+  flex-direction: column;
+}
+
+.discover-people__header {
+  margin: 0 48px 22px 0;
+}
+
+.discover-people__eyebrow {
+  margin: 0 0 4px;
+  color: #737373;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.discover-people__title {
+  margin: 0;
+}
+
+.discover-people__form {
+  margin: 0;
+}
+
+.discover-people__search {
+  display: block;
+}
+
+.discover-people__search-label {
+  display: block;
+  margin: 0 0 8px;
+  color: #737373;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.discover-people__search-control {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  box-sizing: border-box;
+  padding: 0 6px 0 14px;
+  border: 1px solid rgb(33 33 33 / 28%);
+  border-radius: 10px;
+  background: #fff;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.discover-people__search-control:focus-within {
+  border-color: #212121;
+  box-shadow: 0 0 0 1px rgb(33 33 33 / 8%);
+}
+
+.discover-people__search-icon {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: #737373;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.discover-people__input {
+  min-width: 0;
+  width: 100%;
+  padding: 12px 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #212121;
+  font-family: "Poppins", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.discover-people__input::placeholder {
+  color: #9a9a9a;
+}
+
+.discover-people__input:disabled {
+  opacity: 0.65;
+}
+
+.discover-people__input::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+
+.discover-people__submit {
+  min-width: 74px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 8px;
+  background: #212121;
+  color: #fff;
+  font-family: "Poppins", Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    opacity 180ms ease,
+    transform 120ms ease;
+}
+
+.discover-people__submit:hover {
+  opacity: 0.82;
+}
+
+.discover-people__submit:active {
+  transform: scale(0.97);
+}
+
+.discover-people__submit:focus-visible {
+  outline: 2px solid #212121;
+  outline-offset: 3px;
+}
+
+.discover-people__status {
+  margin: 14px 0 0;
+  color: #737373;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.discover-people__status:empty {
+  display: none;
+}
+
+.discover-people__results {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.discover-people__results:empty {
+  display: none;
+}
+
+.discover-people__item {
+  margin: 0;
+  padding: 0;
+}
+
+.discover-people__item + .discover-people__item {
+  border-top: 1px solid #eeeeee;
+}
+
+.discover-people__user {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 14px;
+  padding: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #212121;
+  font-family: "Poppins", Arial, sans-serif;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .discover-people__user:hover {
+    background: #f3f3f3;
+    transform: translateX(2px);
+  }
+}
+
+.discover-people__user:active {
+  transform: translateX(0);
+}
+
+.discover-people__user:focus-visible {
+  outline: 2px solid #212121;
+  outline-offset: 2px;
+}
+
+.discover-people__avatar {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #f3f3f3;
+}
+
+.discover-people__details {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.discover-people__name {
+  overflow: hidden;
+  color: #212121;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.discover-people__about {
+  overflow: hidden;
+  color: #737373;
+  font-size: 13px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.discover-people__empty:not([hidden]) {
+  display: flex;
+  flex: 1;
+  min-height: 150px;
+  align-items: center;
+  justify-content: center;
+  margin: 18px 0 0;
+  padding: 24px;
+  box-sizing: border-box;
+  color: #737373;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.discover-people__empty[hidden] {
+  display: none;
+}
+
+@media screen and (max-width: 627px) {
+  .modal__container_type_discover-people {
+    width: calc(100vw - 24px);
+    min-height: 330px;
+    padding: 24px 20px;
+  }
+
+  .discover-people {
+    min-height: 282px;
+  }
+
+  .discover-people__header {
+    margin: 0 40px 18px 0;
+  }
+
+  .discover-people__search-control {
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 8px;
+    padding-right: 12px;
+  }
+
+  .discover-people__submit {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .discover-people__avatar {
+    width: 46px;
+    height: 46px;
+  }
+
+  .discover-people__user {
+    gap: 12px;
+    padding: 10px 6px;
+  }
+
+  .discover-people__name {
+    font-size: 14px;
+  }
+
+  .discover-people__about {
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .discover-people__search-control,
+  .discover-people__submit,
+  .discover-people__user {
+    transition: none;
+  }
+}
+
+/* DISCOVER PEOPLE MOBILE POLISH */
+
+@media screen and (max-width: 627px) {
+  .modal__container_type_discover-people {
+    min-height: 0;
+  }
+
+  .discover-people {
+    min-height: 0;
+  }
+
+  .discover-people__header {
+    margin-bottom: 14px;
+  }
+
+  .discover-people__results {
+    margin-top: 14px;
+  }
+
+  .discover-people__empty:not([hidden]) {
+    min-height: 100px;
+    margin-top: 12px;
+    padding: 18px 12px;
+  }
+
+  .discover-people__user {
+    gap: 10px;
+    padding-right: 2px;
+    padding-left: 2px;
+  }
+
+  .discover-people__avatar {
+    width: 42px;
+    height: 42px;
+  }
+}
+
+@media screen and (max-width: 380px) {
+  .modal__container_type_discover-people {
+    padding: 20px 16px;
+  }
+
+  .discover-people__header {
+    margin: 0 38px 12px 0;
+  }
+
+  .discover-people__title {
+    max-width: 150px;
+    font-size: 22px;
+    line-height: 1.08;
+  }
+
+  .discover-people__search-label {
+    margin-bottom: 6px;
+  }
+
+  .discover-people__results {
+    margin-top: 12px;
+  }
+
+  .discover-people__empty:not([hidden]) {
+    min-height: 88px;
+    margin-top: 10px;
+  }
+}
+
+/* PROFILE PRIVACY */
+
+.profile-privacy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 4px 0 18px;
+  padding: 14px 0;
+  border-top: 1px solid #e7e7e7;
+  border-bottom: 1px solid #e7e7e7;
+}
+
+.profile-privacy__content {
+  min-width: 0;
+}
+
+.profile-privacy__heading {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.profile-privacy__title {
+  color: #212121;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.profile-privacy__state {
+  color: #737373;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.profile-privacy__description {
+  max-width: 330px;
+  margin: 0;
+  color: #737373;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.profile-privacy__switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.profile-privacy__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.profile-privacy__sr-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.profile-privacy__slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background-color: #d7d7d7;
+  transition:
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.profile-privacy__slider::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 20%);
+  transition: transform 180ms ease;
+}
+
+.profile-privacy__input:checked + .profile-privacy__slider {
+  background-color: #212121;
+}
+
+.profile-privacy__input:checked + .profile-privacy__slider::after {
+  transform: translateX(18px);
+}
+
+.profile-privacy__input:focus-visible + .profile-privacy__slider {
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px #212121;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .profile-privacy__switch:hover .profile-privacy__slider {
+    box-shadow: 0 0 0 3px rgb(33 33 33 / 6%);
+  }
+}
+
+@media screen and (max-width: 627px) {
+  .profile-privacy {
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .profile-privacy__heading {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .profile-privacy__description {
+    max-width: 220px;
+    font-size: 11px;
+  }
+
+  .profile-privacy__switch {
+    margin-top: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-privacy__slider,
+  .profile-privacy__slider::after {
+    transition: none;
+  }
+}

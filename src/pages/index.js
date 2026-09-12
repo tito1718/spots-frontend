@@ -19,6 +19,7 @@ import penWhiteIcon from "../images/spots-images/edit-light.svg";
 import Api from "../utils/Api.js";
 import Notifications from "../components/Notifications.js";
 import SocialList from "../components/SocialList.js";
+import DiscoverPeople from "../components/DiscoverPeople.js";
 import PublicProfile from "../components/PublicProfile.js";
 import Card from "../components/Card.js";
 import MainProfile from "../components/MainProfile.js";
@@ -34,6 +35,7 @@ const api = new Api({
 // APPLICATION STATE //
 
 let currentUserId = null;
+let currentUser = null;
 let cardToDelete = null;
 let isDeleting = false;
 let isAuthenticated = false;
@@ -91,8 +93,25 @@ const loginForm = document.querySelector("#login-form");
 const registerForm = document.querySelector("#register-form");
 const loginBtn = document.querySelector(".header__login-btn");
 const logoutBtn = document.querySelector(".header__logout-btn");
+const discoverBtn = document.querySelector(".header__discover-btn");
 const notificationBtn = document.querySelector(".header__notification-btn");
 const notificationBadge = document.querySelector(".header__notification-badge");
+const discoverPeopleModal = document.querySelector("#discover-people-modal");
+const discoverPeopleForm = discoverPeopleModal.querySelector(
+  ".discover-people__form",
+);
+const discoverPeopleInput = discoverPeopleModal.querySelector(
+  ".discover-people__input",
+);
+const discoverPeopleStatus = discoverPeopleModal.querySelector(
+  ".discover-people__status",
+);
+const discoverPeopleResults = discoverPeopleModal.querySelector(
+  ".discover-people__results",
+);
+const discoverPeopleEmpty = discoverPeopleModal.querySelector(
+  ".discover-people__empty",
+);
 const notificationsModal = document.querySelector("#notifications-modal");
 const notificationsList = notificationsModal.querySelector(
   ".notifications__list",
@@ -115,6 +134,15 @@ const notificationsLoadMoreBtn = notificationsModal.querySelector(
 const showRegisterBtn = document.querySelector("#show-register-btn");
 const showLoginBtn = document.querySelector("#show-login-btn");
 const editProfileForm = editProfileModal.querySelector(".modal__form");
+const profilePrivateInput = editProfileForm.querySelector(
+  "#profile-private-input",
+);
+const profilePrivacyState = editProfileForm.querySelector(
+  "[data-profile-privacy-state]",
+);
+const profilePrivacyDescription = editProfileForm.querySelector(
+  ".profile-privacy__description",
+);
 const newPostForm = newPostModal.querySelector(".modal__form");
 const avatarForm = avatarModal.querySelector(".modal__form");
 const deleteForm = document.querySelector("#delete-form");
@@ -240,6 +268,23 @@ const notifications = new Notifications({
 });
 
 notifications.setEventListeners();
+
+const discoverPeople = new DiscoverPeople({
+  api,
+  modal: discoverPeopleModal,
+  form: discoverPeopleForm,
+  input: discoverPeopleInput,
+  status: discoverPeopleStatus,
+  results: discoverPeopleResults,
+  empty: discoverPeopleEmpty,
+  avatarFallback: avatarDefault,
+  openModal,
+  closeModal,
+  openPublicProfile,
+  isAuthenticated: () => isAuthenticated,
+});
+
+discoverPeople.setEventListeners();
 
 const socialList = new SocialList({
   api,
@@ -371,6 +416,7 @@ function setAuthenticatedView(authenticated) {
   isAuthenticated = authenticated;
   loginBtn.hidden = authenticated;
   logoutBtn.hidden = !authenticated;
+  discoverBtn.hidden = !authenticated;
   notificationBtn.hidden = !authenticated;
   profileTabs.hidden = !authenticated;
   mainProfile.setAuthenticatedView(authenticated);
@@ -392,10 +438,12 @@ function setAuthenticatedView(authenticated) {
 }
 
 function displayUser(user) {
+  currentUser = user;
   mainProfile.displayUser(user);
 }
 
 function displayGuestProfile() {
+  currentUser = null;
   mainProfile.displayGuest();
 }
 
@@ -503,6 +551,12 @@ const mainProfile = new MainProfile({
 });
 
 mainProfile.setEventListeners();
+
+// DISCOVER PEOPLE //
+
+discoverBtn.addEventListener("click", () => {
+  discoverPeople.open(discoverBtn);
+});
 
 // PROFILE CONTENT TABS //
 
@@ -628,6 +682,22 @@ function resetModalValidation(form) {
   );
 }
 
+function updatePrivacyControl(isPrivate) {
+  profilePrivateInput.checked = Boolean(isPrivate);
+
+  profilePrivacyState.textContent = isPrivate
+    ? "Private account"
+    : "Public account";
+
+  profilePrivacyDescription.textContent = isPrivate
+    ? "New followers must send a request that you approve."
+    : "Anyone can follow you immediately and view your posts.";
+}
+
+profilePrivateInput.addEventListener("change", () => {
+  updatePrivacyControl(profilePrivateInput.checked);
+});
+
 // PROFILE ACTION BUTTONS //
 
 editProfileBtn.addEventListener("click", () => {
@@ -635,6 +705,7 @@ editProfileBtn.addEventListener("click", () => {
   const descInput = editProfileForm.querySelector("#profile_description-input");
   nameInput.value = profileNameEl.textContent;
   descInput.value = profileDescriptionEl.textContent;
+  updatePrivacyControl(currentUser?.isPrivate ?? false);
   resetModalValidation(editProfileForm);
   openModal(editProfileModal);
 });
@@ -769,9 +840,15 @@ editProfileForm.addEventListener("submit", (evt) => {
     .editUserInfo({
       name: editProfileForm.querySelector("#profile_name-input").value,
       about: editProfileForm.querySelector("#profile_description-input").value,
+      isPrivate: profilePrivateInput.checked,
     })
     .then((data) => {
+      currentUser = {
+        ...currentUser,
+        ...data,
+      };
       mainProfile.updateProfileInfo(data);
+      updatePrivacyControl(currentUser.isPrivate);
       closeModal(editProfileModal);
     })
     .catch(() => {
