@@ -142,6 +142,14 @@ const cardTemplate = document
   .querySelector("#card-template")
   .content.querySelector(".card");
 const cardsList = document.querySelector(".cards__list");
+const savedEmptyState = document.querySelector("[data-saved-empty]");
+const profileTabs = document.querySelector(".profile-tabs");
+const profileTabButtons = Array.from(
+  profileTabs.querySelectorAll(".profile-tabs__button"),
+);
+
+let loadedCards = [];
+let activeProfileView = "posts";
 
 // COMMENTS //
 
@@ -364,10 +372,21 @@ function setAuthenticatedView(authenticated) {
   loginBtn.hidden = authenticated;
   logoutBtn.hidden = !authenticated;
   notificationBtn.hidden = !authenticated;
+  profileTabs.hidden = !authenticated;
   mainProfile.setAuthenticatedView(authenticated);
   comments.refreshAuthenticationState();
 
   if (!authenticated) {
+    activeProfileView = "posts";
+    loadedCards = [];
+
+    profileTabButtons.forEach((button) => {
+      const isPosts = button.dataset.profileView === "posts";
+
+      button.classList.toggle("profile-tabs__button_active", isPosts);
+      button.setAttribute("aria-pressed", isPosts ? "true" : "false");
+    });
+
     notifications.renderUnreadCount(0);
   }
 }
@@ -385,6 +404,38 @@ function renderCards(cards) {
   cards.forEach(renderCard);
 }
 
+function getVisibleProfileCards() {
+  if (activeProfileView === "saved") {
+    return loadedCards.filter((card) => card.isBookmarked);
+  }
+
+  return loadedCards;
+}
+
+function renderProfileView() {
+  const visibleCards = getVisibleProfileCards();
+  const showSavedEmptyState =
+    activeProfileView === "saved" && visibleCards.length === 0;
+
+  savedEmptyState.hidden = !showSavedEmptyState;
+  cardsList.hidden = showSavedEmptyState;
+
+  renderCards(visibleCards);
+}
+
+function setActiveProfileView(view) {
+  activeProfileView = view === "saved" ? "saved" : "posts";
+
+  profileTabButtons.forEach((button) => {
+    const isActive = button.dataset.profileView === activeProfileView;
+
+    button.classList.toggle("profile-tabs__button_active", isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+
+  renderProfileView();
+}
+
 function openAuthModal(modal) {
   const form = modal.querySelector(".modal__form");
   form.reset();
@@ -398,7 +449,10 @@ async function loadAuthenticatedApp() {
 
   setAuthenticatedView(true);
   displayUser(profileUser);
-  renderCards(cards);
+
+  loadedCards = cards;
+  setActiveProfileView("posts");
+
   clearRequestError();
 
   await notifications.refreshUnreadCount();
@@ -407,6 +461,9 @@ async function loadAuthenticatedApp() {
 async function loadGuestApp() {
   setAuthenticatedView(false);
   displayGuestProfile();
+
+  savedEmptyState.hidden = true;
+  cardsList.hidden = false;
 
   try {
     const cards = await api.getInitialCards();
@@ -447,6 +504,16 @@ const mainProfile = new MainProfile({
 
 mainProfile.setEventListeners();
 
+// PROFILE CONTENT TABS //
+
+profileTabButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    if (!isAuthenticated) return;
+
+    setActiveProfileView(button.dataset.profileView);
+  });
+});
+
 // CARD CREATION //
 
 function requestCardDelete(card) {
@@ -486,6 +553,11 @@ function getCardElement(data) {
     requestDelete: requestCardDelete,
     clearRequestError,
     showRequestError,
+    onBookmarkChange: () => {
+      if (activeProfileView === "saved") {
+        renderProfileView();
+      }
+    },
   });
 
   return card.getElement();

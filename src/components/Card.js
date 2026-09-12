@@ -12,6 +12,7 @@ class Card {
     requestDelete,
     clearRequestError,
     showRequestError,
+    onBookmarkChange = () => {},
   }) {
     this._data = data;
     this._template = template;
@@ -25,11 +26,17 @@ class Card {
     this._requestDelete = requestDelete;
     this._clearRequestError = clearRequestError;
     this._showRequestError = showRequestError;
+    this._onBookmarkChange = onBookmarkChange;
 
     this._element = null;
     this._image = null;
     this._likeButton = null;
     this._likeCount = null;
+    this._bookmarkButton = null;
+
+    this._isBookmarked = Boolean(data.isBookmarked);
+    this._bookmarkId = data.bookmarkId || null;
+    this._isBookmarkPending = false;
 
     this._isLiked = Boolean(data.isLiked);
     this._isLikePending = false;
@@ -49,7 +56,81 @@ class Card {
           };
 
     this._handleLikeClick = this._handleLikeClick.bind(this);
+    this._handleBookmarkClick = this._handleBookmarkClick.bind(this);
     this._handleImageKeydown = this._handleImageKeydown.bind(this);
+  }
+
+  _setBookmarkLoading(isLoading) {
+    this._isBookmarkPending = isLoading;
+    this._bookmarkButton.disabled = isLoading;
+    this._bookmarkButton.setAttribute(
+      "aria-busy",
+      isLoading ? "true" : "false",
+    );
+  }
+
+  _renderBookmarkState() {
+    this._bookmarkButton.classList.toggle(
+      "card__bookmark-btn_active",
+      this._isBookmarked,
+    );
+
+    this._bookmarkButton.setAttribute(
+      "aria-label",
+      this._isBookmarked ? "Remove saved post" : "Save post",
+    );
+
+    this._bookmarkButton.title = this._isBookmarked
+      ? "Remove from saved"
+      : "Save post";
+
+    this._data.isBookmarked = this._isBookmarked;
+    this._data.bookmarkId = this._bookmarkId;
+  }
+
+  async _handleBookmarkClick() {
+    if (this._isBookmarkPending) return;
+
+    if (!this._isAuthenticated()) {
+      this._openLogin();
+      return;
+    }
+
+    this._clearRequestError();
+    this._setBookmarkLoading(true);
+
+    try {
+      if (this._isBookmarked) {
+        if (!this._bookmarkId) {
+          throw new Error("Saved bookmark ID is missing.");
+        }
+
+        await this._api.deleteBookmark(this._bookmarkId);
+
+        this._isBookmarked = false;
+        this._bookmarkId = null;
+      } else {
+        const bookmark = await this._api.createBookmark(this._data._id);
+
+        if (!bookmark?._id) {
+          throw new Error("Bookmark response did not include an ID.");
+        }
+
+        this._isBookmarked = true;
+        this._bookmarkId = bookmark._id;
+      }
+
+      this._renderBookmarkState();
+      this._onBookmarkChange(this._data);
+    } catch {
+      this._showRequestError(
+        this._isBookmarked
+          ? "Could not remove this saved post. Please try again."
+          : "Could not save this post. Please try again.",
+      );
+    } finally {
+      this._setBookmarkLoading(false);
+    }
   }
 
   _setLikeLoading(isLoading) {
@@ -173,11 +254,15 @@ class Card {
     this._image = this._element.querySelector(".card__image");
     this._likeButton = this._element.querySelector(".card__like-btn");
     this._likeCount = this._element.querySelector(".card__like-count");
+    this._bookmarkButton = this._element.querySelector(".card__bookmark-btn");
 
     title.textContent = this._data.name;
 
     this._setOwnerContent(ownerButton, ownerAvatar, ownerName);
     this._setImageContent();
+
+    this._renderBookmarkState();
+    this._bookmarkButton.addEventListener("click", this._handleBookmarkClick);
 
     this._renderLikeState();
     this._likeButton.addEventListener("click", this._handleLikeClick);

@@ -182,3 +182,63 @@ button.card__owner:focus-visible {
   outline: 2px solid #212121;
   outline-offset: 3px;
 }
+
+/* CARD ACTIONS */
+
+.card__actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2px;
+}
+
+/* BOOKMARK CONTROL */
+
+.card__bookmark-btn {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  background-image: url(../images/spots-images/bookmark-outline.svg);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 24px 24px;
+  opacity: 0.7;
+  cursor: pointer;
+  transition:
+    opacity 180ms ease,
+    transform 120ms ease;
+}
+
+.card__bookmark-btn_active {
+  background-image: url(../images/spots-images/bookmark-filled.svg);
+  opacity: 1;
+}
+
+.card__bookmark-btn:focus-visible {
+  border-radius: 6px;
+  outline: 2px solid #212121;
+  outline-offset: 2px;
+}
+
+.card__bookmark-btn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.card__bookmark-btn:disabled {
+  opacity: 0.4;
+  cursor: wait;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card__bookmark-btn:hover:not(:disabled) {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card__bookmark-btn {
+    transition: none;
+  }
+}

@@ -148,17 +148,41 @@ class Api {
     return this._toCard(response?.post || response);
   }
 
+  _applyBookmarkState(cards, bookmarks) {
+    const bookmarkByPostId = new Map();
+
+    bookmarks.forEach((bookmark) => {
+      const postId =
+        typeof bookmark.post === "object" ? bookmark.post?._id : bookmark.post;
+
+      if (postId && !bookmarkByPostId.has(postId)) {
+        bookmarkByPostId.set(postId, bookmark);
+      }
+    });
+
+    return cards.map((card) => {
+      const bookmark = bookmarkByPostId.get(card._id);
+
+      return {
+        ...card,
+        isBookmarked: Boolean(bookmark),
+        bookmarkId: bookmark?._id || null,
+      };
+    });
+  }
+
   // INITIAL APPLICATION DATA //
 
   async getAppInfo() {
     const session = this._accessToken ? null : await this.refreshSession();
 
-    const [cards, user] = await Promise.all([
+    const [cards, user, bookmarks] = await Promise.all([
       this.getInitialCards(),
       this.getUserInfo(),
+      this.getBookmarks(),
     ]);
 
-    return [cards, user || session?.user];
+    return [this._applyBookmarkState(cards, bookmarks), user || session?.user];
   }
 
   // POST REQUESTS //
@@ -206,6 +230,28 @@ class Api {
     });
 
     return this._unwrapPost(data);
+  }
+
+  // BOOKMARK REQUESTS //
+
+  async getBookmarks() {
+    const data = await this._request("/bookmarks?limit=50");
+    return data.bookmarks || [];
+  }
+
+  async createBookmark(postId) {
+    const data = await this._request("/bookmarks", {
+      method: "POST",
+      body: { postId },
+    });
+
+    return data.bookmark;
+  }
+
+  deleteBookmark(bookmarkId) {
+    return this._request(`/bookmarks/${bookmarkId}`, {
+      method: "DELETE",
+    });
   }
 
   // PROFILE REQUESTS //

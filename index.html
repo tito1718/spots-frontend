@@ -121,7 +121,44 @@
           </button>
         </section>
 
+        <nav
+          class="profile-tabs page__section"
+          aria-label="Profile content"
+          hidden
+        >
+          <button
+            class="profile-tabs__button profile-tabs__button_active"
+            type="button"
+            data-profile-view="posts"
+            aria-pressed="true"
+          >
+            Posts
+          </button>
+
+          <button
+            class="profile-tabs__button"
+            type="button"
+            data-profile-view="saved"
+            aria-pressed="false"
+          >
+            Saved
+          </button>
+        </nav>
+
         <section class="cards page__section">
+          <div
+            class="cards__empty"
+            data-saved-empty
+            role="status"
+            aria-live="polite"
+            hidden
+          >
+            <h2 class="cards__empty-title">No saved posts yet</h2>
+            <p class="cards__empty-text">
+              Save posts you want to revisit and they'll appear here.
+            </p>
+          </div>
+
           <ul class="cards__list">
             <template id="card-template">
               <li class="card">
@@ -144,13 +181,21 @@
                     </button>
                   </div>
 
-                  <div class="card__like-container">
+                  <div class="card__actions">
                     <button
-                      aria-label="Like card"
-                      class="card__like-btn"
+                      aria-label="Save post"
+                      class="card__bookmark-btn"
                       type="button"
                     ></button>
-                    <span class="card__like-count">0</span>
+
+                    <div class="card__like-container">
+                      <button
+                        aria-label="Like card"
+                        class="card__like-btn"
+                        type="button"
+                      ></button>
+                      <span class="card__like-count">0</span>
+                    </div>
                   </div>
                 </div>
               </li>
