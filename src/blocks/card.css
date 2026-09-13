@@ -125,10 +125,14 @@
   background-repeat: no-repeat;
   background-position: center;
   background-size: 23px 20px;
+  transition:
+    opacity 180ms ease,
+    transform 120ms ease;
 }
 
 .card__like-btn:hover {
   opacity: 1;
+  transform: scale(1.08);
 }
 
 .card__like-btn_active {
@@ -232,6 +236,7 @@ button.card__owner:focus-visible {
 @media (hover: hover) and (pointer: fine) {
   .card__bookmark-btn:hover:not(:disabled) {
     opacity: 1;
+    transform: scale(1.08);
   }
 }
 
@@ -250,4 +255,73 @@ button.card__owner:focus-visible {
 
 .card__image_unavailable:hover {
   opacity: 1;
+}
+
+/* COLLECTION CONTROL */
+
+.card__collection-btn {
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  border: 2px solid #212121;
+  border-radius: 50%;
+  background: transparent;
+  color: #212121;
+  opacity: 0.7;
+  font-family: Poppins, Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    opacity 180ms ease,
+    transform 120ms ease;
+}
+
+.card__collection-btn[hidden] {
+  display: none;
+}
+
+.card__collection-btn_active {
+  border-color: #212121;
+  background: #212121;
+  color: #fff;
+  opacity: 1;
+}
+
+.card__collection-btn:focus-visible {
+  outline: 2px solid #212121;
+  outline-offset: 2px;
+}
+
+.card__collection-btn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.card__collection-btn:disabled {
+  cursor: wait;
+  opacity: 0.45;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card__collection-btn:hover:not(:disabled) {
+    border-color: #212121;
+    color: #212121;
+    opacity: 1;
+    transform: scale(1.08);
+  }
+
+  .card__collection-btn_active:hover:not(:disabled) {
+    color: #fff;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card__collection-btn {
+    transition: none;
+  }
 }

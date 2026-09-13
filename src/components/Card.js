@@ -15,6 +15,7 @@ class Card {
     clearRequestError,
     showRequestError,
     onBookmarkChange = () => {},
+    onCollectionClick = () => {},
   }) {
     this._data = data;
     this._template = template;
@@ -29,6 +30,7 @@ class Card {
     this._clearRequestError = clearRequestError;
     this._showRequestError = showRequestError;
     this._onBookmarkChange = onBookmarkChange;
+    this._onCollectionClick = onCollectionClick;
 
     this._element = null;
     this._image = null;
@@ -36,9 +38,11 @@ class Card {
     this._likeButton = null;
     this._likeCount = null;
     this._bookmarkButton = null;
+    this._collectionButton = null;
 
     this._isBookmarked = Boolean(data.isBookmarked);
     this._bookmarkId = data.bookmarkId || null;
+    this._collectionId = data.collectionId || null;
     this._isBookmarkPending = false;
 
     this._isLiked = Boolean(data.isLiked);
@@ -60,7 +64,19 @@ class Card {
 
     this._handleLikeClick = this._handleLikeClick.bind(this);
     this._handleBookmarkClick = this._handleBookmarkClick.bind(this);
+    this._handleCollectionClick = this._handleCollectionClick.bind(this);
     this._handleImageKeydown = this._handleImageKeydown.bind(this);
+  }
+
+  _handleCollectionClick() {
+    if (!this._isBookmarked || !this._bookmarkId) return;
+
+    this._onCollectionClick({
+      card: this,
+      data: this._data,
+      bookmarkId: this._bookmarkId,
+      opener: this._collectionButton,
+    });
   }
 
   _setBookmarkLoading(isLoading) {
@@ -87,8 +103,24 @@ class Card {
       ? "Remove from saved"
       : "Save post";
 
+    this._collectionButton.hidden = !this._isBookmarked;
+    this._collectionButton.classList.toggle(
+      "card__collection-btn_active",
+      Boolean(this._collectionId),
+    );
+    this._collectionButton.setAttribute(
+      "aria-label",
+      this._collectionId
+        ? "Change saved post collection"
+        : "Add saved post to collection",
+    );
+    this._collectionButton.title = this._collectionId
+      ? "Change collection"
+      : "Add to collection";
+
     this._data.isBookmarked = this._isBookmarked;
     this._data.bookmarkId = this._bookmarkId;
+    this._data.collectionId = this._collectionId;
   }
 
   async _handleBookmarkClick() {
@@ -112,6 +144,7 @@ class Card {
 
         this._isBookmarked = false;
         this._bookmarkId = null;
+        this._collectionId = null;
       } else {
         const bookmark = await this._api.createBookmark(this._data._id);
 
@@ -121,6 +154,10 @@ class Card {
 
         this._isBookmarked = true;
         this._bookmarkId = bookmark._id;
+        this._collectionId =
+          typeof bookmark.collectionId === "object"
+            ? bookmark.collectionId?._id || null
+            : bookmark.collectionId || null;
       }
 
       this._renderBookmarkState();
@@ -145,6 +182,11 @@ class Card {
   _renderLikeState() {
     this._likeCount.textContent = this._likeCountValue;
     this._likeButton.classList.toggle("card__like-btn_active", this._isLiked);
+
+    const likeAction = this._isLiked ? "Unlike post" : "Like post";
+
+    this._likeButton.setAttribute("aria-label", likeAction);
+    this._likeButton.title = likeAction;
   }
 
   async _handleLikeClick() {
@@ -282,6 +324,9 @@ class Card {
     this._likeButton = this._element.querySelector(".card__like-btn");
     this._likeCount = this._element.querySelector(".card__like-count");
     this._bookmarkButton = this._element.querySelector(".card__bookmark-btn");
+    this._collectionButton = this._element.querySelector(
+      ".card__collection-btn",
+    );
 
     title.textContent = this._data.name;
 
@@ -290,6 +335,10 @@ class Card {
 
     this._renderBookmarkState();
     this._bookmarkButton.addEventListener("click", this._handleBookmarkClick);
+    this._collectionButton.addEventListener(
+      "click",
+      this._handleCollectionClick,
+    );
 
     this._renderLikeState();
     this._likeButton.addEventListener("click", this._handleLikeClick);

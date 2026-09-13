@@ -162,6 +162,44 @@
           </button>
         </nav>
 
+        <section class="saved-library page__section" data-saved-library hidden>
+          <div class="saved-library__header">
+            <div>
+              <h2 class="saved-library__title">Collections</h2>
+              <p class="saved-library__description">
+                Organize saved posts into collections.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              class="saved-library__create-button"
+              data-create-collection
+            >
+              New collection
+            </button>
+          </div>
+
+          <div
+            class="saved-library__empty"
+            data-collections-empty
+            role="status"
+            aria-live="polite"
+          >
+            <h3 class="saved-library__empty-title">No collections yet</h3>
+            <p class="saved-library__empty-text">
+              Create a collection to organize the posts you save.
+            </p>
+          </div>
+
+          <ul
+            class="saved-library__list"
+            data-collections-list
+            aria-label="Saved post collections"
+            hidden
+          ></ul>
+        </section>
+
         <section class="cards page__section">
           <div
             class="cards__empty"
@@ -204,6 +242,16 @@
                       class="card__bookmark-btn"
                       type="button"
                     ></button>
+
+                    <button
+                      aria-label="Add saved post to collection"
+                      class="card__collection-btn"
+                      type="button"
+                      title="Add to collection"
+                      hidden
+                    >
+                      +
+                    </button>
 
                     <div class="card__like-container">
                       <button
@@ -769,6 +817,138 @@
             <span id="profile-avatar-input-error" class="modal__error"></span>
           </label>
           <button type="submit" class="modal__submit-btn">Save</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal" id="collection-assignment-modal">
+      <div class="modal__container modal__container_type_collection-assignment">
+        <button
+          type="button"
+          class="modal__close-btn"
+          aria-label="Close collection assignment dialog"
+        ></button>
+
+        <div class="collection-assignment__header">
+          <p class="collection-assignment__eyebrow">Saved post</p>
+          <h2 class="modal__title collection-assignment__title">
+            Move to collection
+          </h2>
+          <p
+            class="collection-assignment__post"
+            data-collection-assignment-post
+          ></p>
+        </div>
+
+        <div
+          class="collection-assignment__options"
+          data-collection-assignment-options
+          aria-label="Choose a collection"
+        ></div>
+
+        <p
+          class="collection-assignment__empty"
+          data-collection-assignment-empty
+          hidden
+        >
+          You don't have any collections yet. Create one first, then return here
+          to organize this post.
+        </p>
+      </div>
+    </div>
+
+    <div class="modal" id="create-collection-modal">
+      <div class="modal__container modal__container_type_collection">
+        <button
+          type="button"
+          class="modal__close-btn"
+          aria-label="Close create collection dialog"
+        ></button>
+
+        <div class="collection-form__header">
+          <p class="collection-form__eyebrow">Saved posts</p>
+          <h2 class="modal__title collection-form__title">Create collection</h2>
+          <p class="collection-form__intro">
+            Organize saved posts into a private or public collection.
+          </p>
+        </div>
+
+        <form
+          class="modal__form collection-form"
+          id="create-collection-form"
+          novalidate
+        >
+          <label for="collection-name-input" class="modal__label">
+            Name
+            <input
+              id="collection-name-input"
+              type="text"
+              class="modal__input"
+              placeholder="Collection name"
+              minlength="1"
+              maxlength="60"
+              required
+              autocomplete="off"
+            />
+            <span id="collection-name-input-error" class="modal__error"></span>
+          </label>
+
+          <label for="collection-description-input" class="modal__label">
+            Description
+            <textarea
+              id="collection-description-input"
+              class="modal__input collection-form__textarea"
+              placeholder="Optional description"
+              maxlength="300"
+            ></textarea>
+            <span
+              id="collection-description-input-error"
+              class="modal__error"
+            ></span>
+          </label>
+
+          <fieldset class="collection-form__visibility">
+            <legend class="collection-form__legend">Visibility</legend>
+
+            <div class="collection-form__visibility-options">
+              <label class="collection-form__visibility-option">
+                <input
+                  class="collection-form__visibility-input"
+                  type="radio"
+                  name="collection-visibility"
+                  value="private"
+                  checked
+                />
+                <span class="collection-form__visibility-control">
+                  <span class="collection-form__visibility-name">
+                    Private
+                  </span>
+                  <span class="collection-form__visibility-description">
+                    Only you can view this collection.
+                  </span>
+                </span>
+              </label>
+
+              <label class="collection-form__visibility-option">
+                <input
+                  class="collection-form__visibility-input"
+                  type="radio"
+                  name="collection-visibility"
+                  value="public"
+                />
+                <span class="collection-form__visibility-control">
+                  <span class="collection-form__visibility-name"> Public </span>
+                  <span class="collection-form__visibility-description">
+                    Anyone can view this collection.
+                  </span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
+          <button type="submit" class="modal__submit-btn" disabled>
+            Create collection
+          </button>
         </form>
       </div>
     </div>

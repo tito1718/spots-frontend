@@ -82,3 +82,231 @@
     font-size: 13px;
   }
 }
+
+/* SAVED COLLECTIONS */
+
+.saved-library {
+  padding-top: 28px;
+  padding-bottom: 8px;
+}
+
+.saved-library[hidden] {
+  display: none;
+}
+
+.saved-library__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.saved-library__title {
+  margin: 0;
+  color: #212121;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.saved-library__description {
+  margin: 6px 0 0;
+  color: #737373;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.saved-library__create-button {
+  min-height: 40px;
+  padding: 0 18px;
+  border: 1px solid #212121;
+  border-radius: 8px;
+  background: #212121;
+  color: #fff;
+  font-family: Poppins, Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.saved-library__create-button:focus-visible {
+  outline: 2px solid #212121;
+  outline-offset: 3px;
+}
+
+.saved-library__empty {
+  min-height: 150px;
+  padding: 36px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.saved-library__empty[hidden] {
+  display: none;
+}
+
+.saved-library__empty-title {
+  margin: 0;
+  color: #212121;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.saved-library__empty-text {
+  max-width: 360px;
+  margin: 8px 0 0;
+  color: #737373;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.saved-library__list {
+  margin: 24px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  list-style: none;
+}
+
+.saved-library__list[hidden] {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .saved-library__create-button:hover {
+    opacity: 0.8;
+  }
+}
+
+.saved-library__create-button:active {
+  transform: scale(0.98);
+}
+
+@media screen and (max-width: 767px) {
+  .saved-library__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 627px) {
+  .saved-library {
+    padding-top: 22px;
+  }
+
+  .saved-library__header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .saved-library__create-button {
+    width: 100%;
+  }
+
+  .saved-library__empty {
+    min-height: 130px;
+    padding: 30px 16px;
+  }
+
+  .saved-library__list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .saved-library__create-button {
+    transition: none;
+  }
+}
+
+/* COLLECTION CARDS */
+
+.saved-library__item {
+  min-width: 0;
+}
+
+.saved-library__card {
+  min-height: 168px;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #2121211f;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.saved-library__card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.saved-library__card-title {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: #212121;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.saved-library__visibility {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f0f0f0;
+  color: #737373;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.saved-library__visibility[data-visibility="public"] {
+  background: #212121;
+  color: #fff;
+}
+
+.saved-library__card-description {
+  margin: 14px 0 0;
+  display: -webkit-box;
+  overflow: hidden;
+  color: #737373;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.saved-library__card-count {
+  margin: auto 0 0;
+  padding-top: 18px;
+  color: #212121;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+@media screen and (max-width: 627px) {
+  .saved-library__card {
+    min-height: 150px;
+    padding: 18px;
+  }
+}

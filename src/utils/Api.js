@@ -163,10 +163,16 @@ class Api {
     return cards.map((card) => {
       const bookmark = bookmarkByPostId.get(card._id);
 
+      const collectionId =
+        typeof bookmark?.collectionId === "object"
+          ? bookmark.collectionId?._id
+          : bookmark?.collectionId;
+
       return {
         ...card,
         isBookmarked: Boolean(bookmark),
         bookmarkId: bookmark?._id || null,
+        collectionId: collectionId || null,
       };
     });
   }
@@ -259,6 +265,61 @@ class Api {
     return this._request(`/bookmarks/${bookmarkId}`, {
       method: "DELETE",
     });
+  }
+
+  // COLLECTION REQUESTS //
+
+  async getCollections() {
+    const data = await this._request("/collections/mine?limit=50");
+    return data.collections || [];
+  }
+
+  async getCollection(collectionId) {
+    const data = await this._request(`/collections/${collectionId}`);
+    return data.collection;
+  }
+
+  async createCollection({
+    name,
+    description = "",
+    visibility = "private",
+    coverPost = null,
+  }) {
+    const data = await this._request("/collections", {
+      method: "POST",
+      body: {
+        name,
+        description,
+        visibility,
+        coverPost,
+      },
+    });
+
+    return data.collection;
+  }
+
+  async updateCollection(collectionId, updates) {
+    const data = await this._request(`/collections/${collectionId}`, {
+      method: "PATCH",
+      body: updates,
+    });
+
+    return data.collection;
+  }
+
+  deleteCollection(collectionId) {
+    return this._request(`/collections/${collectionId}`, {
+      method: "DELETE",
+    });
+  }
+
+  async updateBookmark(bookmarkId, updates) {
+    const data = await this._request(`/bookmarks/${bookmarkId}`, {
+      method: "PATCH",
+      body: updates,
+    });
+
+    return data.bookmark;
   }
 
   // PROFILE REQUESTS //

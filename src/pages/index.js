@@ -187,12 +187,45 @@ const cardTemplate = document
   .content.querySelector(".card");
 const cardsList = document.querySelector(".cards__list");
 const savedEmptyState = document.querySelector("[data-saved-empty]");
+const savedLibrary = document.querySelector("[data-saved-library]");
+const collectionsEmptyState = document.querySelector(
+  "[data-collections-empty]",
+);
+const collectionsList = document.querySelector("[data-collections-list]");
+const collectionAssignmentModal = document.querySelector(
+  "#collection-assignment-modal",
+);
+const collectionAssignmentPost = collectionAssignmentModal.querySelector(
+  "[data-collection-assignment-post]",
+);
+const collectionAssignmentOptions = collectionAssignmentModal.querySelector(
+  "[data-collection-assignment-options]",
+);
+const collectionAssignmentEmpty = collectionAssignmentModal.querySelector(
+  "[data-collection-assignment-empty]",
+);
+const createCollectionBtn = document.querySelector("[data-create-collection]");
+const createCollectionModal = document.querySelector(
+  "#create-collection-modal",
+);
+const createCollectionForm = document.querySelector("#create-collection-form");
+const collectionNameInput = createCollectionForm.querySelector(
+  "#collection-name-input",
+);
+const collectionDescriptionInput = createCollectionForm.querySelector(
+  "#collection-description-input",
+);
+const collectionVisibilityInputs = Array.from(
+  createCollectionForm.querySelectorAll('input[name="collection-visibility"]'),
+);
 const profileTabs = document.querySelector(".profile-tabs");
 const profileTabButtons = Array.from(
   profileTabs.querySelectorAll(".profile-tabs__button"),
 );
 
 let loadedCards = [];
+let loadedCollections = [];
+let collectionAssignmentTarget = null;
 let activeProfileView = "posts";
 
 // COMMENTS //
@@ -445,6 +478,7 @@ function setAuthenticatedView(authenticated) {
   if (!authenticated) {
     activeProfileView = "posts";
     loadedCards = [];
+    loadedCollections = [];
 
     profileTabButtons.forEach((button) => {
       const isPosts = button.dataset.profileView === "posts";
@@ -480,14 +514,60 @@ function getVisibleProfileCards() {
   return loadedCards;
 }
 
+function renderCollections() {
+  collectionsList.replaceChildren();
+
+  loadedCollections.forEach((collection) => {
+    const item = document.createElement("li");
+    const card = document.createElement("article");
+    const header = document.createElement("div");
+    const name = document.createElement("h3");
+    const visibility = document.createElement("span");
+    const description = document.createElement("p");
+    const count = document.createElement("p");
+
+    item.className = "saved-library__item";
+    card.className = "saved-library__card";
+    header.className = "saved-library__card-header";
+    name.className = "saved-library__card-title";
+    visibility.className = "saved-library__visibility";
+    description.className = "saved-library__card-description";
+    count.className = "saved-library__card-count";
+
+    name.textContent = collection.name;
+    visibility.textContent =
+      collection.visibility === "public" ? "Public" : "Private";
+    visibility.dataset.visibility = collection.visibility;
+
+    description.textContent = collection.description || "No description yet.";
+
+    const bookmarkCount = Number(collection.bookmarkCount) || 0;
+    count.textContent = `${bookmarkCount} saved ${
+      bookmarkCount === 1 ? "post" : "posts"
+    }`;
+
+    header.append(name, visibility);
+    card.append(header, description, count);
+    item.append(card);
+    collectionsList.append(item);
+  });
+
+  const hasCollections = loadedCollections.length > 0;
+
+  collectionsEmptyState.hidden = hasCollections;
+  collectionsList.hidden = !hasCollections;
+}
+
 function renderProfileView() {
   const visibleCards = getVisibleProfileCards();
-  const showSavedEmptyState =
-    activeProfileView === "saved" && visibleCards.length === 0;
+  const isSavedView = activeProfileView === "saved";
+  const showSavedEmptyState = isSavedView && visibleCards.length === 0;
 
+  savedLibrary.hidden = !isSavedView;
   savedEmptyState.hidden = !showSavedEmptyState;
   cardsList.hidden = showSavedEmptyState;
 
+  renderCollections();
   renderCards(visibleCards);
 }
 
@@ -513,12 +593,16 @@ function openAuthModal(modal) {
 
 async function loadAuthenticatedApp() {
   const [cards, user] = await api.getAppInfo();
-  const profileUser = await api.getUserProfile(user._id);
+  const [profileUser, collections] = await Promise.all([
+    api.getUserProfile(user._id),
+    api.getCollections(),
+  ]);
 
   setAuthenticatedView(true);
   displayUser(profileUser);
 
   loadedCards = cards;
+  loadedCollections = collections;
   setActiveProfileView("posts");
 
   clearRequestError();
@@ -613,6 +697,123 @@ function openCardPreview(data, opener) {
   void comments.show(data);
 }
 
+function getBookmarkCollectionId(bookmark) {
+  if (!bookmark?.collectionId) return null;
+
+  return typeof bookmark.collectionId === "object"
+    ? bookmark.collectionId?._id || null
+    : bookmark.collectionId;
+}
+
+function setCollectionAssignmentLoading(isLoading) {
+  collectionAssignmentOptions
+    .querySelectorAll(".collection-assignment__option")
+    .forEach((button) => {
+      button.disabled = isLoading;
+    });
+
+  collectionAssignmentOptions.setAttribute(
+    "aria-busy",
+    isLoading ? "true" : "false",
+  );
+}
+
+async function assignBookmarkToCollection(collectionId) {
+  if (!collectionAssignmentTarget) return;
+
+  const { data, bookmarkId } = collectionAssignmentTarget;
+
+  clearRequestError();
+  setCollectionAssignmentLoading(true);
+
+  try {
+    const bookmark = await api.updateBookmark(bookmarkId, {
+      collectionId,
+    });
+
+    const updatedCollectionId = getBookmarkCollectionId(bookmark);
+
+    data.collectionId = updatedCollectionId;
+
+    const loadedCard = loadedCards.find((card) => card._id === data._id);
+
+    if (loadedCard) {
+      loadedCard.collectionId = updatedCollectionId;
+    }
+
+    loadedCollections = await api.getCollections();
+
+    closeModal(collectionAssignmentModal);
+    collectionAssignmentTarget = null;
+    renderProfileView();
+  } catch {
+    showRequestError(
+      "Could not update this saved post's collection. Please try again.",
+    );
+  } finally {
+    setCollectionAssignmentLoading(false);
+  }
+}
+
+function createCollectionAssignmentOption({ label, collectionId, selected }) {
+  const button = document.createElement("button");
+
+  button.type = "button";
+  button.className = "collection-assignment__option";
+  button.classList.toggle("collection-assignment__option_selected", selected);
+  button.setAttribute("aria-pressed", selected ? "true" : "false");
+  button.dataset.collectionId = collectionId || "";
+  button.textContent = label;
+
+  button.addEventListener("click", () => {
+    void assignBookmarkToCollection(collectionId);
+  });
+
+  return button;
+}
+
+function renderCollectionAssignmentOptions() {
+  collectionAssignmentOptions.replaceChildren();
+
+  if (!collectionAssignmentTarget) return;
+
+  const currentCollectionId =
+    collectionAssignmentTarget.data.collectionId || null;
+
+  collectionAssignmentOptions.append(
+    createCollectionAssignmentOption({
+      label: "No collection",
+      collectionId: null,
+      selected: currentCollectionId === null,
+    }),
+  );
+
+  loadedCollections.forEach((collection) => {
+    collectionAssignmentOptions.append(
+      createCollectionAssignmentOption({
+        label: collection.name,
+        collectionId: collection._id,
+        selected: currentCollectionId === collection._id,
+      }),
+    );
+  });
+
+  collectionAssignmentEmpty.hidden = loadedCollections.length > 0;
+}
+
+function requestCollectionAssignment({ data, bookmarkId, opener }) {
+  if (!bookmarkId) return;
+
+  collectionAssignmentTarget = {
+    data,
+    bookmarkId,
+  };
+
+  collectionAssignmentPost.textContent = data.name;
+  renderCollectionAssignmentOptions();
+  openModal(collectionAssignmentModal, opener);
+}
+
 function getCardElement(data) {
   const card = new Card({
     data,
@@ -627,10 +828,26 @@ function getCardElement(data) {
     requestDelete: requestCardDelete,
     clearRequestError,
     showRequestError,
+    onCollectionClick: requestCollectionAssignment,
     onBookmarkChange: () => {
       if (activeProfileView === "saved") {
         renderProfileView();
       }
+
+      void api
+        .getCollections()
+        .then((collections) => {
+          loadedCollections = collections;
+
+          if (activeProfileView === "saved") {
+            renderCollections();
+          }
+        })
+        .catch(() => {
+          showRequestError(
+            "Saved posts updated, but collection totals could not refresh.",
+          );
+        });
     },
   });
 
@@ -819,6 +1036,56 @@ function resetNewPostForm() {
 }
 
 newPostCaptionInput.addEventListener("input", updateNewPostCaptionCount);
+
+// COLLECTION CREATION //
+
+function getSelectedCollectionVisibility() {
+  return (
+    collectionVisibilityInputs.find((input) => input.checked)?.value ||
+    "private"
+  );
+}
+
+function resetCreateCollectionForm() {
+  createCollectionForm.reset();
+  resetModalValidation(createCollectionForm);
+}
+
+createCollectionBtn.addEventListener("click", () => {
+  resetCreateCollectionForm();
+  openModal(createCollectionModal, createCollectionBtn);
+});
+
+createCollectionForm.addEventListener("submit", (evt) => {
+  evt.preventDefault();
+  clearRequestError(createCollectionForm);
+
+  const submitButton = createCollectionForm.querySelector(".modal__submit-btn");
+
+  setLoadingState(submitButton, true, "Create collection", "Creating...");
+
+  api
+    .createCollection({
+      name: collectionNameInput.value.trim(),
+      description: collectionDescriptionInput.value.trim(),
+      visibility: getSelectedCollectionVisibility(),
+    })
+    .then((collection) => {
+      loadedCollections.unshift(collection);
+      renderCollections();
+      resetCreateCollectionForm();
+      closeModal(createCollectionModal);
+    })
+    .catch(() => {
+      showRequestError(
+        "Could not create the collection. Please try again.",
+        createCollectionForm,
+      );
+    })
+    .finally(() => {
+      setLoadingState(submitButton, false, "Create collection", "Creating...");
+    });
+});
 
 // PROFILE ACTION BUTTONS //
 
