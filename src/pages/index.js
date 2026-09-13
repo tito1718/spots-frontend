@@ -640,18 +640,27 @@ deleteForm.addEventListener("submit", (evt) => {
   isDeleting = true;
   setLoadingState(deleteSubmitBtn, true, "Delete", "Deleting...");
 
+  const removeDeletedCard = () => {
+    loadedCards = loadedCards.filter((card) => card._id !== submittedCard.id);
+    renderProfileView();
+
+    if (cardToDelete === submittedCard) {
+      closeModal(deleteModal);
+      cardToDelete = null;
+    }
+  };
+
   api
     .deleteCard(submittedCard.id)
     .then(() => {
-      submittedCard.element.remove();
-
-      // Do not dismiss a confirmation opened for a different selection.
-      if (cardToDelete === submittedCard) {
-        closeModal(deleteModal);
-        cardToDelete = null;
-      }
+      removeDeletedCard();
     })
-    .catch(() => {
+    .catch((error) => {
+      if (error.status === 404) {
+        removeDeletedCard();
+        return;
+      }
+
       showRequestError(
         "Could not delete the photo. Please try again.",
         cardToDelete === submittedCard ? deleteForm : null,
