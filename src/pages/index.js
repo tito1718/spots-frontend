@@ -336,6 +336,10 @@ const publicProfile = new PublicProfile({
   showRequestError,
   isAuthenticated: () => isAuthenticated,
   updateOwnFollowingCount: (change) => mainProfile.updateFollowingCount(change),
+  onRelationshipChange: async () => {
+    loadedCards = await api.getInitialCards();
+    renderProfileView();
+  },
 });
 
 publicProfile.setEventListeners();

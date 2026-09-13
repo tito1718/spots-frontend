@@ -12,6 +12,7 @@ class PublicProfile {
     showRequestError,
     isAuthenticated,
     updateOwnFollowingCount,
+    onRelationshipChange,
   }) {
     this._api = api;
     this._modal = modal;
@@ -25,6 +26,7 @@ class PublicProfile {
     this._showRequestError = showRequestError;
     this._isAuthenticated = isAuthenticated;
     this._updateOwnFollowingCount = updateOwnFollowingCount;
+    this._onRelationshipChange = onRelationshipChange;
 
     this._activeUser = null;
     this._followPending = false;
@@ -189,6 +191,14 @@ class PublicProfile {
       status.textContent = this._getRelationshipLabel(
         this._activeUser.relationshipStatus,
       );
+
+      if (this._onRelationshipChange) {
+        await this._onRelationshipChange({
+          userId: this._activeUser._id,
+          previousStatus,
+          relationshipStatus: this._activeUser.relationshipStatus,
+        });
+      }
     } catch {
       this._showRequestError(
         "Could not update this follow relationship. Please try again.",
