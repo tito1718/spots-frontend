@@ -2302,3 +2302,17 @@
     transition: none;
   }
 }
+
+/* PUBLIC PROFILE IMAGE UNAVAILABLE */
+
+.public-profile__post:disabled {
+  cursor: default;
+}
+
+.public-profile__post-image_unavailable {
+  background: #f3f3f3;
+}
+
+.public-profile__post:disabled:hover .public-profile__post-image {
+  transform: none;
+}

@@ -242,3 +242,14 @@ button.card__owner:focus-visible {
     transition: none;
   }
 }
+
+/* IMAGE UNAVAILABLE */
+
+.card__image_unavailable {
+  background: #f3f3f3;
+  cursor: default;
+}
+
+.card__image_unavailable:hover {
+  opacity: 1;
+}

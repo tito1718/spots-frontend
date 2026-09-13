@@ -30,6 +30,7 @@ class Card {
 
     this._element = null;
     this._image = null;
+    this._isImageUnavailable = false;
     this._likeButton = null;
     this._likeCount = null;
     this._bookmarkButton = null;
@@ -179,6 +180,8 @@ class Card {
   }
 
   _handleImageKeydown(event) {
+    if (this._isImageUnavailable) return;
+
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       this._image.click();
@@ -212,15 +215,37 @@ class Card {
   }
 
   _setImageContent() {
+    const fallbackImage = new URL(
+      "../images/spots-images/image-unavailable.svg",
+      import.meta.url,
+    ).href;
+
     this._image.src = this._data.link;
     this._image.alt = this._data.name;
     this._image.tabIndex = 0;
     this._image.setAttribute("role", "button");
     this._image.setAttribute("aria-label", `View photo: ${this._data.name}`);
 
+    this._image.addEventListener(
+      "error",
+      () => {
+        this._isImageUnavailable = true;
+        this._image.src = fallbackImage;
+        this._image.alt = `Image unavailable for ${this._data.name}`;
+        this._image.tabIndex = -1;
+        this._image.removeAttribute("role");
+        this._image.setAttribute("aria-disabled", "true");
+        this._image.removeAttribute("aria-label");
+        this._image.classList.add("card__image_unavailable");
+      },
+      { once: true },
+    );
+
     this._image.addEventListener("keydown", this._handleImageKeydown);
 
     this._image.addEventListener("click", () => {
+      if (this._isImageUnavailable) return;
+
       this._openPreview(this._data, this._image);
     });
   }

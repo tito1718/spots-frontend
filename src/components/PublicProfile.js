@@ -99,17 +99,36 @@ class PublicProfile {
     button.className = "public-profile__post";
     button.setAttribute("aria-label", `View photo: ${card.name}`);
 
+    const fallbackImage = new URL(
+      "../images/spots-images/image-unavailable.svg",
+      import.meta.url,
+    ).href;
+
+    let imageUnavailable = false;
+
     image.className = "public-profile__post-image";
     image.src = card.link;
     image.alt = card.name;
 
-    image.addEventListener("error", () => {
-      button.remove();
-    });
+    image.addEventListener(
+      "error",
+      () => {
+        imageUnavailable = true;
+        image.src = fallbackImage;
+        image.alt = `Image unavailable for ${card.name}`;
+        image.classList.add("public-profile__post-image_unavailable");
+        button.disabled = true;
+        button.setAttribute("aria-disabled", "true");
+        button.removeAttribute("aria-label");
+      },
+      { once: true },
+    );
 
     button.append(image);
 
     button.addEventListener("click", () => {
+      if (imageUnavailable) return;
+
       this._returningFromPreview = true;
       this._openPostPreview(card, button);
     });

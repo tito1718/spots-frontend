@@ -1,0 +1,45 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 600 600"
+  role="img"
+  aria-labelledby="title description"
+>
+  <title id="title">Image unavailable</title>
+  <desc id="description">This image could not be loaded.</desc>
+
+  <rect width="600" height="600" rx="24" fill="#f3f3f3"/>
+
+  <g
+    fill="none"
+    stroke="#9a9a9a"
+    stroke-width="16"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <rect x="188" y="176" width="224" height="176" rx="20"/>
+    <circle cx="252" cy="232" r="20"/>
+    <path d="m212 326 74-72 46 44 38-34 42 40"/>
+  </g>
+
+  <text
+    x="300"
+    y="407"
+    fill="#737373"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="29"
+    text-anchor="middle"
+  >
+    Image unavailable
+  </text>
+
+  <text
+    x="300"
+    y="447"
+    fill="#9a9a9a"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="20"
+    text-anchor="middle"
+  >
+    The source could not be loaded
+  </text>
+</svg>
