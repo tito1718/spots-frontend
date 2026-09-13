@@ -229,36 +229,194 @@
       </footer>
 
       <div class="modal" id="new-post-modal">
-        <div class="modal__container">
-          <button type="button" class="modal__close-btn"></button>
-          <h2 class="modal__title">New post</h2>
-          <form class="modal__form" novalidate>
-            <label for="card-image-input" class="modal__label">
-              Image link
-              <input
-                id="card-image-input"
-                type="url"
-                class="modal__input"
-                placeholder="Paste a link to the picture"
-                required
-              />
-              <span id="card-image-input-error" class="modal__error"></span>
-            </label>
-            <label for="caption-input" class="modal__label">
-              Caption
-              <input
-                id="caption-input"
-                type="text"
-                class="modal__input"
-                placeholder="Type your caption"
-                required
-                minlength="2"
-                maxlength="30"
-              />
-              <span id="caption-input-error" class="modal__error"></span>
-            </label>
-            <button type="submit" class="modal__submit-btn">Save</button>
-          </form>
+        <div class="modal__container modal__container_type_new-post">
+          <button
+            type="button"
+            class="modal__close-btn"
+            aria-label="Close New post"
+          ></button>
+
+          <div class="new-post">
+            <div class="new-post__header">
+              <p class="new-post__eyebrow">Create</p>
+              <h2 class="modal__title new-post__title">New post</h2>
+              <p class="new-post__intro">
+                Share a moment with the Spots community.
+              </p>
+            </div>
+
+            <form class="modal__form new-post__form" novalidate>
+              <label for="card-image-input" class="modal__label">
+                Image link
+                <input
+                  id="card-image-input"
+                  type="url"
+                  class="modal__input"
+                  placeholder="Paste a link to the picture"
+                  required
+                />
+                <span id="card-image-input-error" class="modal__error"></span>
+              </label>
+
+              <label for="caption-input" class="modal__label">
+                Caption
+                <textarea
+                  id="caption-input"
+                  class="modal__input new-post__textarea"
+                  placeholder="Write a caption..."
+                  required
+                  minlength="2"
+                  maxlength="2200"
+                  rows="4"
+                ></textarea>
+                <span class="new-post__field-meta">
+                  <span>Tell people about this moment.</span>
+                  <span
+                    class="new-post__character-count"
+                    data-caption-count
+                    aria-live="polite"
+                  >
+                    0 / 2200
+                  </span>
+                </span>
+                <span id="caption-input-error" class="modal__error"></span>
+              </label>
+
+              <label for="post-tags-input" class="modal__label">
+                Tags
+                <input
+                  id="post-tags-input"
+                  type="text"
+                  class="modal__input"
+                  placeholder="travel, nature, photography"
+                  autocomplete="off"
+                />
+                <span class="new-post__field-hint">
+                  Optional · Up to 10 tags, separated by commas.
+                </span>
+                <span id="post-tags-input-error" class="modal__error"></span>
+              </label>
+
+              <fieldset class="new-post__location">
+                <legend class="new-post__location-legend">Location</legend>
+
+                <label for="post-location-input" class="modal__label">
+                  Place
+                  <input
+                    id="post-location-input"
+                    type="text"
+                    class="modal__input"
+                    placeholder="Add a city, place, or landmark"
+                    maxlength="120"
+                    autocomplete="off"
+                  />
+                </label>
+
+                <div class="new-post__coordinates">
+                  <label
+                    for="post-latitude-input"
+                    class="modal__label new-post__coordinate-field"
+                  >
+                    Latitude
+                    <input
+                      id="post-latitude-input"
+                      type="number"
+                      class="modal__input"
+                      placeholder="e.g. 40.7128"
+                      min="-90"
+                      max="90"
+                      step="any"
+                      inputmode="decimal"
+                    />
+                  </label>
+
+                  <label
+                    for="post-longitude-input"
+                    class="modal__label new-post__coordinate-field"
+                  >
+                    Longitude
+                    <input
+                      id="post-longitude-input"
+                      type="number"
+                      class="modal__input"
+                      placeholder="e.g. -74.0060"
+                      min="-180"
+                      max="180"
+                      step="any"
+                      inputmode="decimal"
+                    />
+                  </label>
+                </div>
+
+                <span class="new-post__field-hint">
+                  Optional · Add a place with its latitude and longitude.
+                </span>
+                <span
+                  id="post-location-input-error"
+                  class="modal__error"
+                  aria-live="polite"
+                ></span>
+              </fieldset>
+
+              <fieldset class="new-post__visibility">
+                <legend class="new-post__visibility-legend">
+                  Who can see this post?
+                </legend>
+
+                <div class="new-post__visibility-options">
+                  <label class="new-post__visibility-option">
+                    <input
+                      class="new-post__visibility-input"
+                      type="radio"
+                      name="post-visibility"
+                      value="public"
+                      checked
+                    />
+                    <span class="new-post__visibility-control">
+                      <span class="new-post__visibility-name">Public</span>
+                      <span class="new-post__visibility-description">
+                        Anyone can see this post.
+                      </span>
+                    </span>
+                  </label>
+
+                  <label class="new-post__visibility-option">
+                    <input
+                      class="new-post__visibility-input"
+                      type="radio"
+                      name="post-visibility"
+                      value="followers"
+                    />
+                    <span class="new-post__visibility-control">
+                      <span class="new-post__visibility-name">Followers</span>
+                      <span class="new-post__visibility-description">
+                        Only people who follow you.
+                      </span>
+                    </span>
+                  </label>
+
+                  <label class="new-post__visibility-option">
+                    <input
+                      class="new-post__visibility-input"
+                      type="radio"
+                      name="post-visibility"
+                      value="private"
+                    />
+                    <span class="new-post__visibility-control">
+                      <span class="new-post__visibility-name">Only me</span>
+                      <span class="new-post__visibility-description">
+                        Visible only to you.
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              </fieldset>
+
+              <button type="submit" class="modal__submit-btn">
+                Create post
+              </button>
+            </form>
+          </div>
         </div>
       </div>
 

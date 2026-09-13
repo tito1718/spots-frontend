@@ -144,6 +144,22 @@ const profilePrivacyDescription = editProfileForm.querySelector(
   ".profile-privacy__description",
 );
 const newPostForm = newPostModal.querySelector(".modal__form");
+const newPostCaptionInput = newPostForm.querySelector("#caption-input");
+const newPostImageInput = newPostForm.querySelector("#card-image-input");
+const newPostTagsInput = newPostForm.querySelector("#post-tags-input");
+const newPostTagsError = newPostForm.querySelector("#post-tags-input-error");
+const newPostLocationInput = newPostForm.querySelector("#post-location-input");
+const newPostLatitudeInput = newPostForm.querySelector("#post-latitude-input");
+const newPostLongitudeInput = newPostForm.querySelector(
+  "#post-longitude-input",
+);
+const newPostLocationError = newPostForm.querySelector(
+  "#post-location-input-error",
+);
+const newPostCaptionCount = newPostForm.querySelector("[data-caption-count]");
+const newPostVisibilityInputs = Array.from(
+  newPostForm.querySelectorAll('input[name="post-visibility"]'),
+);
 const avatarForm = avatarModal.querySelector(".modal__form");
 const deleteForm = document.querySelector("#delete-form");
 const previewImageEl = previewModal.querySelector(".modal__image");
@@ -711,6 +727,100 @@ profilePrivateInput.addEventListener("change", () => {
   updatePrivacyControl(profilePrivateInput.checked);
 });
 
+function updateNewPostCaptionCount() {
+  const count = newPostCaptionInput.value.length;
+  newPostCaptionCount.textContent = `${count} / 2200`;
+}
+
+function parsePostTags(value) {
+  return value
+    .split(",")
+    .map((tag) => tag.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function validatePostTags(tags) {
+  newPostTagsError.textContent = "";
+
+  if (tags.length > 10) {
+    newPostTagsError.textContent = "You can add up to 10 tags.";
+    return false;
+  }
+
+  if (new Set(tags).size !== tags.length) {
+    newPostTagsError.textContent = "Tags must be unique.";
+    return false;
+  }
+
+  if (tags.some((tag) => tag.length > 40)) {
+    newPostTagsError.textContent = "Each tag must be 40 characters or fewer.";
+    return false;
+  }
+
+  return true;
+}
+
+function getSelectedPostVisibility() {
+  return (
+    newPostVisibilityInputs.find((input) => input.checked)?.value || "public"
+  );
+}
+
+function getPostLocation() {
+  newPostLocationError.textContent = "";
+
+  const name = newPostLocationInput.value.trim();
+  const latitudeValue = newPostLatitudeInput.value.trim();
+  const longitudeValue = newPostLongitudeInput.value.trim();
+
+  const hasName = Boolean(name);
+  const hasLatitude = latitudeValue !== "";
+  const hasLongitude = longitudeValue !== "";
+  const hasAnyLocation = hasName || hasLatitude || hasLongitude;
+
+  if (!hasAnyLocation) {
+    return undefined;
+  }
+
+  if (!hasName || !hasLatitude || !hasLongitude) {
+    newPostLocationError.textContent =
+      "Add a place, latitude, and longitude together.";
+    return null;
+  }
+
+  const latitude = Number(latitudeValue);
+  const longitude = Number(longitudeValue);
+
+  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+    newPostLocationError.textContent = "Latitude must be between -90 and 90.";
+    return null;
+  }
+
+  if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+    newPostLocationError.textContent =
+      "Longitude must be between -180 and 180.";
+    return null;
+  }
+
+  return {
+    name,
+    point: {
+      type: "Point",
+      coordinates: [longitude, latitude],
+    },
+  };
+}
+
+function resetNewPostForm() {
+  newPostForm.reset();
+  newPostTagsError.textContent = "";
+  newPostLocationError.textContent = "";
+  updateNewPostCaptionCount();
+  resetModalValidation(newPostForm);
+}
+
+newPostCaptionInput.addEventListener("input", updateNewPostCaptionCount);
+
 // PROFILE ACTION BUTTONS //
 
 editProfileBtn.addEventListener("click", () => {
@@ -724,8 +834,7 @@ editProfileBtn.addEventListener("click", () => {
 });
 
 newPostBtn.addEventListener("click", () => {
-  newPostForm.reset();
-  resetModalValidation(newPostForm);
+  resetNewPostForm();
   openModal(newPostModal);
 });
 
@@ -880,17 +989,35 @@ editProfileForm.addEventListener("submit", (evt) => {
 newPostForm.addEventListener("submit", (evt) => {
   evt.preventDefault();
   clearRequestError(newPostForm);
+
+  const tags = parsePostTags(newPostTagsInput.value);
+  const location = getPostLocation();
+
+  if (!validatePostTags(tags)) {
+    newPostTagsInput.focus();
+    return;
+  }
+
+  if (location === null) {
+    newPostLocationInput.focus();
+    return;
+  }
+
   const btn = newPostForm.querySelector(".modal__submit-btn");
-  setLoadingState(btn, true, "Save", "Creating...");
+  setLoadingState(btn, true, "Create post", "Creating...");
 
   api
     .addNewCard({
-      name: newPostForm.querySelector("#caption-input").value,
-      link: newPostForm.querySelector("#card-image-input").value,
+      name: newPostCaptionInput.value,
+      link: newPostImageInput.value,
+      tags,
+      visibility: getSelectedPostVisibility(),
+      location,
     })
     .then((data) => {
-      renderCard(data);
-      newPostForm.reset();
+      loadedCards.unshift(data);
+      renderProfileView();
+      resetNewPostForm();
       closeModal(newPostModal);
     })
     .catch(() => {
@@ -900,7 +1027,7 @@ newPostForm.addEventListener("submit", (evt) => {
       );
     })
     .finally(() => {
-      setLoadingState(btn, false, "Save", "Creating...");
+      setLoadingState(btn, false, "Create post", "Creating...");
     });
 });
 

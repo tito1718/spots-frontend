@@ -192,17 +192,24 @@ class Api {
     return (data.posts || []).map((post) => this._toCard(post));
   }
 
-  async addNewCard({ name, link }) {
+  async addNewCard({ name, link, tags = [], visibility = "public", location }) {
+    const body = {
+      caption: name,
+      image: {
+        url: link,
+        altText: name,
+      },
+      tags,
+      visibility,
+    };
+
+    if (location) {
+      body.location = location;
+    }
+
     const data = await this._request("/posts", {
       method: "POST",
-      body: {
-        caption: name,
-        image: {
-          url: link,
-          altText: name,
-        },
-        visibility: "public",
-      },
+      body,
     });
 
     return this._unwrapPost(data);
