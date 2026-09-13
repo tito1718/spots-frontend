@@ -1,3 +1,5 @@
+// SOCIAL LIST //
+
 class SocialList {
   constructor({
     api,

@@ -1,3 +1,5 @@
+// COMMENTS //
+
 class Comments {
   constructor({
     api,

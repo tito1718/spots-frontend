@@ -72,7 +72,6 @@
   max-width: 420px;
   font-weight: 500;
   font-size: 32px;
-  /* Leave room for letter descenders when text is clipped. */
   line-height: 1.4;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -252,8 +251,6 @@
     object-fit: contain;
   }
 }
-
-/* Shared motion, focus, and reduced-motion rules live in refinements.css. */
 
 /* PROFILE AVATAR PREVIEW */
 

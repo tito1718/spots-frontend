@@ -1,3 +1,5 @@
+// NOTIFICATIONS //
+
 class Notifications {
   constructor({
     api,

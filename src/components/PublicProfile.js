@@ -1,3 +1,5 @@
+// PUBLIC PROFILE //
+
 class PublicProfile {
   constructor({
     api,

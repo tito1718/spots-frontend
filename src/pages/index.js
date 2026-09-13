@@ -650,7 +650,6 @@ deleteForm.addEventListener("submit", (evt) => {
   evt.preventDefault();
   if (!cardToDelete || isDeleting) return;
 
-  // Keep the submitted target stable if another photo is selected.
   clearRequestError(deleteForm);
   const submittedCard = cardToDelete;
   isDeleting = true;

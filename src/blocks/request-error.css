@@ -16,8 +16,6 @@
   overflow-wrap: anywhere;
 }
 
-/* Keep empty live regions present without visible spacing. */
-
 .request-error:empty {
   padding: 0;
   margin-top: 0;

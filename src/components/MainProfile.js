@@ -1,3 +1,5 @@
+// MAIN PROFILE //
+
 class MainProfile {
   constructor({
     api,

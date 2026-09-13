@@ -15,7 +15,6 @@ document.querySelectorAll(".modal__form").forEach((form) => {
   region.setAttribute("role", "alert");
   region.setAttribute("aria-atomic", "true");
 
-  // Keep messages outside the delete form's horizontal button layout.
   form.before(region);
   regions.set(form, region);
 });
@@ -38,7 +37,6 @@ export function showRequestError(message, form = null) {
   if (formModal === visibleModal && regions.has(form)) {
     region = regions.get(form);
   } else if (visibleModal) {
-    // Keep errors perceivable when the background page is inert.
     region = visibleModal.querySelector(".request-error");
 
     if (!region) {
