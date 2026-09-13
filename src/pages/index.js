@@ -37,6 +37,7 @@ const api = new Api({
 let currentUserId = null;
 let currentUser = null;
 let cardToDelete = null;
+let collectionToDelete = null;
 let isDeleting = false;
 let isAuthenticated = false;
 let returnToProfileAfterPreview = false;
@@ -182,6 +183,13 @@ const deleteSubmitBtn = deleteForm.querySelector(
 const cancelDeleteBtn = deleteForm.querySelector(
   ".modal__submit-btn_type_cancel",
 );
+const deleteModalTitle = deleteModal.querySelector("[data-delete-modal-title]");
+const deleteModalDescription = deleteModal.querySelector(
+  "[data-delete-modal-description]",
+);
+const deleteCollectionButton = document.querySelector(
+  "[data-delete-collection]",
+);
 const cardTemplate = document
   .querySelector("#card-template")
   .content.querySelector(".card");
@@ -203,6 +211,33 @@ const collectionAssignmentOptions = collectionAssignmentModal.querySelector(
 );
 const collectionAssignmentEmpty = collectionAssignmentModal.querySelector(
   "[data-collection-assignment-empty]",
+);
+const collectionDetail = document.querySelector("[data-collection-detail]");
+const collectionDetailBack = document.querySelector(
+  "[data-collection-detail-back]",
+);
+const collectionDetailTitle = document.querySelector(
+  "[data-collection-detail-title]",
+);
+const collectionDetailDescription = document.querySelector(
+  "[data-collection-detail-description]",
+);
+const collectionDetailVisibility = document.querySelector(
+  "[data-collection-detail-visibility]",
+);
+const editCollectionButton = document.querySelector("[data-edit-collection]");
+const editCollectionModal = document.querySelector("#edit-collection-modal");
+const editCollectionForm = document.querySelector("#edit-collection-form");
+const editCollectionNameInput = editCollectionForm.querySelector(
+  "#edit-collection-name-input",
+);
+const editCollectionDescriptionInput = editCollectionForm.querySelector(
+  "#edit-collection-description-input",
+);
+const editCollectionVisibilityInputs = Array.from(
+  editCollectionForm.querySelectorAll(
+    'input[name="edit-collection-visibility"]',
+  ),
 );
 const createCollectionBtn = document.querySelector("[data-create-collection]");
 const createCollectionModal = document.querySelector(
@@ -226,6 +261,7 @@ const profileTabButtons = Array.from(
 let loadedCards = [];
 let loadedCollections = [];
 let collectionAssignmentTarget = null;
+let activeCollectionId = null;
 let activeProfileView = "posts";
 
 // COMMENTS //
@@ -508,7 +544,15 @@ function renderCards(cards) {
 
 function getVisibleProfileCards() {
   if (activeProfileView === "saved") {
-    return loadedCards.filter((card) => card.isBookmarked);
+    const savedCards = loadedCards.filter((card) => card.isBookmarked);
+
+    if (activeCollectionId) {
+      return savedCards.filter(
+        (card) => card.collectionId === activeCollectionId,
+      );
+    }
+
+    return savedCards;
   }
 
   return loadedCards;
@@ -519,7 +563,7 @@ function renderCollections() {
 
   loadedCollections.forEach((collection) => {
     const item = document.createElement("li");
-    const card = document.createElement("article");
+    const card = document.createElement("button");
     const header = document.createElement("div");
     const name = document.createElement("h3");
     const visibility = document.createElement("span");
@@ -528,6 +572,15 @@ function renderCollections() {
 
     item.className = "saved-library__item";
     card.className = "saved-library__card";
+    card.type = "button";
+    card.dataset.collectionId = collection._id;
+    card.setAttribute("aria-label", `Open collection ${collection.name}`);
+
+    card.addEventListener("click", () => {
+      activeCollectionId = collection._id;
+      renderProfileView();
+    });
+
     header.className = "saved-library__card-header";
     name.className = "saved-library__card-title";
     visibility.className = "saved-library__visibility";
@@ -558,14 +611,64 @@ function renderCollections() {
   collectionsList.hidden = !hasCollections;
 }
 
+function renderActiveCollectionDetail() {
+  const collection = loadedCollections.find(
+    (item) => item._id === activeCollectionId,
+  );
+
+  if (!collection) {
+    activeCollectionId = null;
+    collectionDetail.hidden = true;
+    return;
+  }
+
+  collectionDetailTitle.textContent = collection.name;
+  collectionDetailDescription.textContent =
+    collection.description || "No description yet.";
+
+  collectionDetailVisibility.textContent =
+    collection.visibility === "public" ? "Public" : "Private";
+  collectionDetailVisibility.dataset.visibility = collection.visibility;
+
+  collectionDetail.hidden = false;
+}
+
 function renderProfileView() {
   const visibleCards = getVisibleProfileCards();
   const isSavedView = activeProfileView === "saved";
+  const isCollectionView = isSavedView && Boolean(activeCollectionId);
   const showSavedEmptyState = isSavedView && visibleCards.length === 0;
 
-  savedLibrary.hidden = !isSavedView;
+  savedLibrary.hidden = !isSavedView || isCollectionView;
+  collectionDetail.hidden = !isCollectionView;
   savedEmptyState.hidden = !showSavedEmptyState;
   cardsList.hidden = showSavedEmptyState;
+
+  if (isCollectionView) {
+    const collection = loadedCollections.find(
+      (item) => item._id === activeCollectionId,
+    );
+
+    savedEmptyState.querySelector(".cards__empty-title").textContent =
+      "No posts in this collection yet";
+    savedEmptyState.querySelector(".cards__empty-text").textContent =
+      "Add a saved post to this collection and it will appear here.";
+
+    if (collection) {
+      renderActiveCollectionDetail();
+    } else {
+      activeCollectionId = null;
+      renderProfileView();
+      return;
+    }
+  } else {
+    collectionDetail.hidden = true;
+
+    savedEmptyState.querySelector(".cards__empty-title").textContent =
+      "No saved posts yet";
+    savedEmptyState.querySelector(".cards__empty-text").textContent =
+      "Save posts you want to revisit and they'll appear here.";
+  }
 
   renderCollections();
   renderCards(visibleCards);
@@ -573,6 +676,10 @@ function renderProfileView() {
 
 function setActiveProfileView(view) {
   activeProfileView = view === "saved" ? "saved" : "posts";
+
+  if (activeProfileView !== "saved") {
+    activeCollectionId = null;
+  }
 
   profileTabButtons.forEach((button) => {
     const isActive = button.dataset.profileView === activeProfileView;
@@ -672,11 +779,22 @@ profileTabButtons.forEach((button) => {
   });
 });
 
+collectionDetailBack.addEventListener("click", () => {
+  activeCollectionId = null;
+  renderProfileView();
+});
+
+// COLLECTION DETAIL //
+
 // CARD CREATION //
 
 function requestCardDelete(card) {
   clearRequestError(deleteForm);
+  collectionToDelete = null;
   cardToDelete = card;
+  deleteModalTitle.textContent = "Delete this photo?";
+  deleteModalDescription.textContent =
+    "This photo will be permanently removed. This cannot be undone.";
   openModal(deleteModal);
 }
 
@@ -865,9 +983,67 @@ function renderCard(item) {
 
 deleteForm.addEventListener("submit", (evt) => {
   evt.preventDefault();
-  if (!cardToDelete || isDeleting) return;
+
+  if (isDeleting) return;
 
   clearRequestError(deleteForm);
+
+  if (collectionToDelete) {
+    const submittedCollection = collectionToDelete;
+    const collectionId = submittedCollection._id;
+
+    isDeleting = true;
+    setLoadingState(deleteSubmitBtn, true, "Delete", "Deleting...");
+
+    const removeDeletedCollection = () => {
+      loadedCollections = loadedCollections.filter(
+        (collection) => collection._id !== collectionId,
+      );
+
+      loadedCards.forEach((card) => {
+        if (card.collectionId === collectionId) {
+          card.collectionId = null;
+        }
+      });
+
+      if (activeCollectionId === collectionId) {
+        activeCollectionId = null;
+      }
+
+      renderProfileView();
+
+      if (collectionToDelete === submittedCollection) {
+        closeModal(deleteModal);
+        collectionToDelete = null;
+      }
+    };
+
+    api
+      .deleteCollection(collectionId)
+      .then(() => {
+        removeDeletedCollection();
+      })
+      .catch((error) => {
+        if (error.status === 404) {
+          removeDeletedCollection();
+          return;
+        }
+
+        showRequestError(
+          "Could not delete the collection. Please try again.",
+          collectionToDelete === submittedCollection ? deleteForm : null,
+        );
+      })
+      .finally(() => {
+        isDeleting = false;
+        setLoadingState(deleteSubmitBtn, false, "Delete", "Deleting...");
+      });
+
+    return;
+  }
+
+  if (!cardToDelete) return;
+
   const submittedCard = cardToDelete;
   isDeleting = true;
   setLoadingState(deleteSubmitBtn, true, "Delete", "Deleting...");
@@ -1046,10 +1222,53 @@ function getSelectedCollectionVisibility() {
   );
 }
 
+function getSelectedEditCollectionVisibility() {
+  return (
+    editCollectionVisibilityInputs.find((input) => input.checked)?.value ||
+    "private"
+  );
+}
+
 function resetCreateCollectionForm() {
   createCollectionForm.reset();
   resetModalValidation(createCollectionForm);
 }
+
+editCollectionButton.addEventListener("click", () => {
+  const collection = loadedCollections.find(
+    (item) => item._id === activeCollectionId,
+  );
+
+  if (!collection) return;
+
+  editCollectionNameInput.value = collection.name || "";
+  editCollectionDescriptionInput.value = collection.description || "";
+
+  editCollectionVisibilityInputs.forEach((input) => {
+    input.checked = input.value === collection.visibility;
+  });
+
+  resetModalValidation(editCollectionForm);
+  openModal(editCollectionModal, editCollectionButton);
+});
+
+deleteCollectionButton.addEventListener("click", () => {
+  const collection = loadedCollections.find(
+    (item) => item._id === activeCollectionId,
+  );
+
+  if (!collection) return;
+
+  clearRequestError(deleteForm);
+  cardToDelete = null;
+  collectionToDelete = collection;
+
+  deleteModalTitle.textContent = "Delete this collection?";
+  deleteModalDescription.textContent = `"${collection.name}" will be permanently deleted. Saved posts will remain saved. This cannot be undone.`;
+
+  closeModal(editCollectionModal);
+  openModal(deleteModal, deleteCollectionButton);
+});
 
 createCollectionBtn.addEventListener("click", () => {
   resetCreateCollectionForm();
@@ -1084,6 +1303,44 @@ createCollectionForm.addEventListener("submit", (evt) => {
     })
     .finally(() => {
       setLoadingState(submitButton, false, "Create collection", "Creating...");
+    });
+});
+
+editCollectionForm.addEventListener("submit", (evt) => {
+  evt.preventDefault();
+  clearRequestError(editCollectionForm);
+
+  const collectionId = activeCollectionId;
+
+  if (!collectionId) return;
+
+  const submitButton = editCollectionForm.querySelector(".modal__submit-btn");
+
+  setLoadingState(submitButton, true, "Save changes", "Saving...");
+
+  api
+    .updateCollection(collectionId, {
+      name: editCollectionNameInput.value.trim(),
+      description: editCollectionDescriptionInput.value.trim(),
+      visibility: getSelectedEditCollectionVisibility(),
+    })
+    .then((updatedCollection) => {
+      loadedCollections = loadedCollections.map((collection) =>
+        collection._id === collectionId ? updatedCollection : collection,
+      );
+
+      renderCollections();
+      renderActiveCollectionDetail();
+      closeModal(editCollectionModal);
+    })
+    .catch(() => {
+      showRequestError(
+        "Could not update the collection. Please try again.",
+        editCollectionForm,
+      );
+    })
+    .finally(() => {
+      setLoadingState(submitButton, false, "Save changes", "Saving...");
     });
 });
 

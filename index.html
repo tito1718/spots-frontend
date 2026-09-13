@@ -200,6 +200,48 @@
           ></ul>
         </section>
 
+        <section
+          class="collection-detail page__section"
+          data-collection-detail
+          hidden
+        >
+          <button
+            type="button"
+            class="collection-detail__back"
+            data-collection-detail-back
+          >
+            ← All collections
+          </button>
+
+          <div class="collection-detail__heading">
+            <div>
+              <h2
+                class="collection-detail__title"
+                data-collection-detail-title
+              ></h2>
+              <p
+                class="collection-detail__description"
+                data-collection-detail-description
+              ></p>
+            </div>
+
+            <div class="collection-detail__actions">
+              <button
+                type="button"
+                class="collection-detail__edit"
+                data-edit-collection
+              >
+                Edit collection
+              </button>
+
+              <span
+                class="collection-detail__visibility"
+                data-collection-detail-visibility
+              ></span>
+            </div>
+          </div>
+        </section>
+
         <section class="cards page__section">
           <div
             class="cards__empty"
@@ -953,6 +995,111 @@
       </div>
     </div>
 
+    <div class="modal" id="edit-collection-modal">
+      <div class="modal__container modal__container_type_collection">
+        <button
+          aria-label="Close modal"
+          class="modal__close-btn"
+          type="button"
+        ></button>
+
+        <form
+          class="modal__form"
+          id="edit-collection-form"
+          name="edit-collection"
+          novalidate
+        >
+          <div class="collection-form__header">
+            <p class="collection-form__eyebrow">Saved posts</p>
+            <h2 class="modal__title collection-form__title">Edit collection</h2>
+            <p class="collection-form__intro">
+              Update the details and visibility of this collection.
+            </p>
+          </div>
+
+          <label class="modal__label" for="edit-collection-name-input">
+            Name
+          </label>
+          <input
+            class="modal__input"
+            id="edit-collection-name-input"
+            name="name"
+            type="text"
+            placeholder="Collection name"
+            minlength="1"
+            maxlength="80"
+            required
+          />
+          <span
+            class="modal__error"
+            id="edit-collection-name-input-error"
+          ></span>
+
+          <label class="modal__label" for="edit-collection-description-input">
+            Description
+          </label>
+          <textarea
+            class="modal__input collection-form__textarea"
+            id="edit-collection-description-input"
+            name="description"
+            placeholder="What is this collection about?"
+            maxlength="240"
+          ></textarea>
+          <span
+            class="modal__error"
+            id="edit-collection-description-input-error"
+          ></span>
+
+          <fieldset class="collection-form__visibility">
+            <legend class="collection-form__legend">Visibility</legend>
+
+            <div class="collection-form__visibility-options">
+              <label class="collection-form__visibility-option">
+                <input
+                  class="collection-form__visibility-input"
+                  type="radio"
+                  name="edit-collection-visibility"
+                  value="private"
+                />
+                <span class="collection-form__visibility-control">
+                  <span class="collection-form__visibility-name">
+                    Private
+                  </span>
+                  <span class="collection-form__visibility-description">
+                    Only you can view this collection.
+                  </span>
+                </span>
+              </label>
+
+              <label class="collection-form__visibility-option">
+                <input
+                  class="collection-form__visibility-input"
+                  type="radio"
+                  name="edit-collection-visibility"
+                  value="public"
+                />
+                <span class="collection-form__visibility-control">
+                  <span class="collection-form__visibility-name"> Public </span>
+                  <span class="collection-form__visibility-description">
+                    Anyone can view this collection.
+                  </span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
+          <button type="submit" class="modal__submit-btn">Save changes</button>
+          <button
+            type="button"
+            class="modal__submit-btn modal__submit-btn_type_delete"
+            data-delete-collection
+          >
+            Delete collection
+          </button>
+        </form>
+      </div>
+    </div>
+
     <div class="modal" id="delete-modal">
       <div class="modal__container">
         <button
@@ -960,8 +1107,10 @@
           class="modal__close-btn"
           type="button"
         ></button>
-        <h2 class="modal__title modal__title_delete">Delete this photo?</h2>
-        <p class="modal__delete-description">
+        <h2 class="modal__title modal__title_delete" data-delete-modal-title>
+          Delete this photo?
+        </h2>
+        <p class="modal__delete-description" data-delete-modal-description>
           This photo will be permanently removed. This cannot be undone.
         </p>
         <form

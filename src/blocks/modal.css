@@ -2710,6 +2710,15 @@
   margin: 0 48px 24px 0;
 }
 
+.modal__container_type_collection .modal__label {
+  margin-bottom: 0;
+}
+
+.modal__container_type_collection .modal__input {
+  margin-top: 8px;
+  margin-bottom: 20px;
+}
+
 .collection-form__eyebrow {
   margin: 0 0 4px;
   color: #737373;
@@ -2971,5 +2980,15 @@
 @media (prefers-reduced-motion: reduce) {
   .collection-assignment__option {
     transition: none;
+  }
+}
+
+[data-delete-collection] {
+  margin-top: 12px;
+}
+
+@media screen and (max-width: 627px) {
+  [data-delete-collection] {
+    width: 100%;
   }
 }
